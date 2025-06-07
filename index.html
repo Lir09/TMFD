@@ -1,12 +1,11 @@
 <!DOCTYPE html>
 <html lang="ko">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
     <title>조선시대 과전법 전세 계산기</title>
     <style>
-        /* (생략 없이 기존 스타일 전체 유지) */
-        /* 코드가 길어서 이 주석 아래 줄부터 스타일을 붙여넣으면 됩니다 */
+        /* 기존 스타일 유지 (생략 가능) */
         * {
             box-sizing: border-box;
             margin: 0;
@@ -209,128 +208,109 @@
             <div class="info-section">
                 <h3>📜 과전법 전세 제도 안내</h3>
                 <p><strong>과전법(科田法)</strong>은 조선 태조 때 시행된 토지 제도로, 공전과 사전을 막론하고 <strong>1/10 세율</strong>을 원칙으로 하였습니다.</p>
-                <p><strong>답험손실법(踏驗損實法)</strong>을 통해 토지의 비옥도와 수확량을 고려하여 최대 30두를 기준으로 세율을 차등 적용하였습니다.</p>
-                <p>이 계산기는 역사적 기록을 바탕으로 당시의 조세 계산 방식을 재현합니다.</p>
+                <p><strong>답험손실법(踏驗損實法)</strong>을 통해 토지 비옥도에 따라 전세의 최대 한도가 다르게 설정되었습니다.</p>
+                <ul>
+                    <li>토지 등급에 따른 최대 전세 한도</li>
+                    <li>상급: 30두, 중급: 25두, 하급: 20두</li>
+                    <li>기후에 따른 수확량 변동 반영</li>
+                </ul>
+                <p>작물별 기본 생산량은 1결당 300두를 기준으로 하며, 작물별 수확계수에 따라 조정됩니다.</p>
+                <p>기후 조건과 토지 등급에 따른 전세 징수를 체험해 보세요.</p>
             </div>
 
             <div class="calculator-section">
-                <h3 style="color: #d4af37; margin-bottom: 25px; text-align: center;">🌾 토지 정보 입력</h3>
-                
-                <div class="grid">
-                    <div class="input-group">
-                        <label for="landArea">토지 면적 (결 단위)</label>
-                        <input type="number" id="landArea" step="0.1" min="0" placeholder="예: 2.5">
-                    </div>
+                <h3>💰 세금 계산</h3>
+                <div class="input-group">
+                    <label for="landArea">토지 면적(결 단위)</label>
+                    <input type="number" id="landArea" placeholder="예: 1.5" min="0" step="0.1" />
+                </div>
+                <div class="input-group">
+                    <label for="crop">작물 선택</label>
+                    <select id="crop">
+                        <option value="1.0">벼 (수확계수: 1.0)</option>
+                        <option value="0.8">보리 (수확계수: 0.8)</option>
+                        <option value="0.6">조 (수확계수: 0.6)</option>
+                    </select>
+                </div>
+                <div class="input-group">
+                    <label for="climate">기후 조건</label>
+                    <select id="climate">
+                        <option value="1.2">풍년 (1.2배)</option>
+                        <option value="1.0" selected>평년 (1.0배)</option>
+                        <option value="0.8">흉년 (0.8배)</option>
+                    </select>
+                </div>
+                <div class="input-group">
+                    <label for="landGrade">토지 비옥도 등급</label>
+                    <select id="landGrade">
+                        <option value="30">상급 (최대 전세 30두)</option>
+                        <option value="25" selected>중급 (최대 전세 25두)</option>
+                        <option value="20">하급 (최대 전세 20두)</option>
+                    </select>
+                </div>
+                <button class="calculate-btn" onclick="calculateTax()">계산하기</button>
 
-                    <div class="input-group">
-                        <label for="weather">기후 조건</label>
-                        <select id="weather">
-                            <option value="">조건 선택</option>
-                            <option value="good">풍년 (110% 수확)</option>
-                            <option value="normal">평년 (100% 수확)</option>
-                            <option value="bad">흉년 (70% 수확)</option>
-                        </select>
+                <div id="result" class="result-section">
+                    <div class="result-item">
+                        <span class="result-label">총 수확량(두):</span>
+                        <span id="totalHarvest" class="result-value"></span>
+                    </div>
+                    <div class="result-item">
+                        <span class="result-label">총 전세(두):</span>
+                        <span id="totalTax" class="result-value"></span>
+                    </div>
+                    <div class="result-item">
+                        <span class="result-label">결당 전세 한도(두):</span>
+                        <span id="maxTaxPerPlot" class="result-value"></span>
                     </div>
                 </div>
+            </div>
 
-                <div class="grid">
-                    <div class="input-group">
-                        <label for="cropType">작물 종류</label>
-                        <select id="cropType">
-                            <option value="">작물 선택</option>
-                            <option value="rice">벼 </option>
-                            <option value="barley">보리 </option>
-                            <option value="millet">조 </option>
-                        </select>
-                    </div>
-                </div>
-
-                <button class="calculate-btn" onclick="calculateTax()">📊 전세 계산하기</button>
-
-                <div class="result-section" id="resultSection">
-                    <h3 style="color: #d4af37; margin-bottom: 20px; text-align: center;">📋 계산 결과</h3>
-                    <div class="result-item">
-                        <span class="result-label">토지 면적:</span>
-                        <span class="result-value" id="resultArea">-</span>
-                    </div>
-                    <div class="result-item">
-                        <span class="result-label">예상 수확량:</span>
-                        <span class="result-value" id="resultHarvest">-</span>
-                    </div>
-                    <div class="result-item">
-                        <span class="result-label">적용 세율:</span>
-                        <span class="result-value" id="resultTaxRate">-</span>
-                    </div>
-                    <div class="result-item">
-                        <span class="result-label">답험손실법 적용:</span>
-                        <span class="result-value" id="resultMethod">-</span>
-                    </div>
-                    <div class="result-item">
-                        <span class="result-label">🌾 최종 전세 납부액:</span>
-                        <span class="result-value" id="resultTax">-</span>
-                    </div>
-                </div>
-
-                <div class="formula-section">
-                    <h4>💡 계산 공식</h4>
-                    <div class="formula">
-                        기본 수확량 = 토지면적 × 20 × 작물계수
-                    </div>
-                    <div class="formula">
-                        실제 수확량 = 기본수확량 × 기후조건계수
-                    </div>
-                    <div class="formula">
-                        전세 = min(실제수확량 × 0.1, 30두)
-                    </div>
-                </div>
+            <div class="formula-section">
+                <h4>📐 계산 공식</h4>
+                <p>기본 수확량 = 300두 × 작물 수확계수</p>
+                <p>실제 수확량 = 기본 수확량 × 기후 계수</p>
+                <p>총 수확량 = 실제 수확량 × 토지 면적(결)</p>
+                <p>총 전세 = 총 수확량 × 10%</p>
+                <p>단, 결당 전세 한도를 초과할 수 없음 (답험손실법 반영)</p>
             </div>
         </div>
     </div>
 
-    <script>
-        function calculateTax() {
-            const landArea = parseFloat(document.getElementById('landArea').value);
-            const weather = document.getElementById('weather').value;
-            const cropType = document.getElementById('cropType').value;
+<script>
+    function calculateTax() {
+        // 입력값 읽기
+        const landArea = parseFloat(document.getElementById('landArea').value);
+        const cropCoefficient = parseFloat(document.getElementById('crop').value);
+        const climateCoefficient = parseFloat(document.getElementById('climate').value);
+        const maxTaxPerPlot = parseFloat(document.getElementById('landGrade').value);
 
-            if (!landArea || !weather || !cropType) {
-                alert('모든 항목을 입력해주세요.');
-                return;
-            }
-
-            const cropMultiplier = {
-                'rice': 1.0,
-                'barley': 0.8,
-                'millet': 0.6
-            };
-
-            const weatherMultiplier = {
-                'good': 1.1,
-                'normal': 1.0,
-                'bad': 0.7
-            };
-
-            const baseYield = landArea * 20 * cropMultiplier[cropType];
-            const actualYield = baseYield * weatherMultiplier[weather];
-            const baseTaxRate = 0.1;
-            const rawTax = actualYield * baseTaxRate;
-            const finalTax = Math.min(rawTax, 30);
-
-            document.getElementById('resultArea').textContent = `${landArea}결`;
-            document.getElementById('resultHarvest').textContent = `${actualYield.toFixed(1)}두`;
-            document.getElementById('resultTaxRate').textContent = `${(baseTaxRate * 100)}%`;
-            document.getElementById('resultMethod').textContent = rawTax > 30 ? '최대 30두 제한 적용' : '기본 1/10 세율 적용';
-            document.getElementById('resultTax').textContent = `${finalTax.toFixed(1)}두`;
-
-            document.getElementById('resultSection').style.display = 'block';
-            document.getElementById('resultSection').scrollIntoView({ behavior: 'smooth' });
+        if (isNaN(landArea) || landArea <= 0) {
+            alert('토지 면적을 올바르게 입력해주세요.');
+            return;
         }
 
-        document.addEventListener('keypress', function(e) {
-            if (e.key === 'Enter') {
-                calculateTax();
-            }
-        });
-    </script>
+        // 1결당 기본 생산량 (두)
+        const baseYieldPerPlot = 300 * cropCoefficient;
+
+        // 실제 수확량 (기후계수 반영)
+        const actualYieldPerPlot = baseYieldPerPlot * climateCoefficient;
+
+        // 전체 수확량
+        const totalHarvest = actualYieldPerPlot * landArea;
+
+        // 전세 (1/10), 단 결당 최대 한도 적용
+        const rawTax = totalHarvest * 0.1;
+        const maxTotalTax = maxTaxPerPlot * landArea;
+        const totalTax = Math.min(rawTax, maxTotalTax);
+
+        // 결과 표시
+        document.getElementById('totalHarvest').textContent = totalHarvest.toFixed(2);
+        document.getElementById('totalTax').textContent = totalTax.toFixed(2);
+        document.getElementById('maxTaxPerPlot').textContent = `${maxTaxPerPlot}두`;
+        document.getElementById('result').style.display = 'block';
+    }
+</script>
+
 </body>
 </html>
