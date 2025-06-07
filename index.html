@@ -1,0 +1,336 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>조선시대 과전법 전세 계산기</title>
+    <style>
+        /* (생략 없이 기존 스타일 전체 유지) */
+        /* 코드가 길어서 이 주석 아래 줄부터 스타일을 붙여넣으면 됩니다 */
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+        body {
+            font-family: 'Malgun Gothic', '맑은 고딕', sans-serif;
+            background: linear-gradient(135deg, #2d1810 0%, #4a2f1f 50%, #6b4423 100%);
+            min-height: 100vh;
+            color: #f4f1e8;
+            padding: 20px;
+        }
+        .container {
+            max-width: 900px;
+            margin: 0 auto;
+            background: rgba(74, 47, 31, 0.9);
+            border-radius: 20px;
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.3);
+            overflow: hidden;
+            border: 2px solid #d4af37;
+        }
+        .header {
+            background: linear-gradient(45deg, #8b4513, #a0522d);
+            padding: 30px;
+            text-align: center;
+            border-bottom: 3px solid #d4af37;
+            position: relative;
+        }
+        .header::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 5px;
+            background: repeating-linear-gradient(
+                90deg,
+                #d4af37 0px,
+                #d4af37 20px,
+                #8b4513 20px,
+                #8b4513 40px
+            );
+        }
+        .header h1 {
+            font-size: 2.5em;
+            color: #d4af37;
+            text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.5);
+            margin-bottom: 10px;
+            font-weight: bold;
+        }
+        .header p {
+            font-size: 1.1em;
+            color: #f4f1e8;
+            opacity: 0.9;
+        }
+        .content {
+            padding: 40px;
+        }
+        .info-section {
+            background: rgba(139, 69, 19, 0.3);
+            padding: 20px;
+            border-radius: 15px;
+            margin-bottom: 30px;
+            border-left: 5px solid #d4af37;
+        }
+        .info-section h3 {
+            color: #d4af37;
+            margin-bottom: 15px;
+            font-size: 1.3em;
+        }
+        .info-section p {
+            line-height: 1.6;
+            margin-bottom: 10px;
+        }
+        .calculator-section {
+            background: rgba(160, 82, 45, 0.2);
+            padding: 30px;
+            border-radius: 15px;
+            margin-bottom: 30px;
+            border: 2px solid rgba(212, 175, 55, 0.3);
+        }
+        .input-group {
+            margin-bottom: 20px;
+        }
+        .input-group label {
+            display: block;
+            margin-bottom: 8px;
+            color: #d4af37;
+            font-weight: bold;
+            font-size: 1.1em;
+        }
+        .input-group input, .input-group select {
+            width: 100%;
+            padding: 12px;
+            border: 2px solid #8b4513;
+            border-radius: 8px;
+            background: rgba(244, 241, 232, 0.95);
+            color: #2d1810;
+            font-size: 1em;
+            transition: all 0.3s ease;
+        }
+        .input-group input:focus, .input-group select:focus {
+            outline: none;
+            border-color: #d4af37;
+            box-shadow: 0 0 10px rgba(212, 175, 55, 0.3);
+        }
+        .calculate-btn {
+            background: linear-gradient(45deg, #d4af37, #f4d03f);
+            color: #2d1810;
+            border: none;
+            padding: 15px 30px;
+            border-radius: 10px;
+            font-size: 1.2em;
+            font-weight: bold;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            box-shadow: 0 5px 15px rgba(212, 175, 55, 0.3);
+            width: 100%;
+            margin-top: 20px;
+        }
+        .calculate-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 20px rgba(212, 175, 55, 0.4);
+        }
+        .result-section {
+            background: rgba(139, 69, 19, 0.4);
+            padding: 25px;
+            border-radius: 15px;
+            margin-top: 20px;
+            border: 2px solid #d4af37;
+            display: none;
+        }
+        .result-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 12px 0;
+            border-bottom: 1px solid rgba(212, 175, 55, 0.3);
+        }
+        .result-item:last-child {
+            border-bottom: none;
+            font-size: 1.2em;
+            font-weight: bold;
+            background: rgba(212, 175, 55, 0.2);
+            padding: 15px;
+            border-radius: 8px;
+            margin-top: 10px;
+        }
+        .result-label {
+            color: #f4f1e8;
+        }
+        .result-value {
+            color: #d4af37;
+            font-weight: bold;
+        }
+        .grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+        }
+        @media (max-width: 768px) {
+            .grid {
+                grid-template-columns: 1fr;
+            }
+            .header h1 {
+                font-size: 2em;
+            }
+            .content {
+                padding: 20px;
+            }
+        }
+        .formula-section {
+            background: rgba(74, 47, 31, 0.6);
+            padding: 20px;
+            border-radius: 15px;
+            margin-top: 20px;
+            border: 1px solid rgba(212, 175, 55, 0.5);
+        }
+        .formula-section h4 {
+            color: #d4af37;
+            margin-bottom: 15px;
+        }
+        .formula {
+            background: rgba(0, 0, 0, 0.3);
+            padding: 15px;
+            border-radius: 8px;
+            font-family: monospace;
+            color: #f4f1e8;
+            margin: 10px 0;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>과전법 계산기</h1>
+            <p>당시 조선의 전세제도의 세금 계산을 체험하실 수 있습니다.</p>
+        </div>
+        <div class="content">
+            <div class="info-section">
+                <h3>📜 과전법 전세 제도 안내</h3>
+                <p><strong>과전법(科田法)</strong>은 조선 태조 때 시행된 토지 제도로, 공전과 사전을 막론하고 <strong>1/10 세율</strong>을 원칙으로 하였습니다.</p>
+                <p><strong>답험손실법(踏驗損實法)</strong>을 통해 토지의 비옥도와 수확량을 고려하여 최대 30두를 기준으로 세율을 차등 적용하였습니다.</p>
+                <p>이 계산기는 역사적 기록을 바탕으로 당시의 조세 계산 방식을 재현합니다.</p>
+            </div>
+
+            <div class="calculator-section">
+                <h3 style="color: #d4af37; margin-bottom: 25px; text-align: center;">🌾 토지 정보 입력</h3>
+                
+                <div class="grid">
+                    <div class="input-group">
+                        <label for="landArea">토지 면적 (결 단위)</label>
+                        <input type="number" id="landArea" step="0.1" min="0" placeholder="예: 2.5">
+                    </div>
+
+                    <div class="input-group">
+                        <label for="weather">기후 조건</label>
+                        <select id="weather">
+                            <option value="">조건 선택</option>
+                            <option value="good">풍년 (110% 수확)</option>
+                            <option value="normal">평년 (100% 수확)</option>
+                            <option value="bad">흉년 (70% 수확)</option>
+                        </select>
+                    </div>
+                </div>
+
+                <div class="grid">
+                    <div class="input-group">
+                        <label for="cropType">작물 종류</label>
+                        <select id="cropType">
+                            <option value="">작물 선택</option>
+                            <option value="rice">벼 </option>
+                            <option value="barley">보리 </option>
+                            <option value="millet">조 </option>
+                        </select>
+                    </div>
+                </div>
+
+                <button class="calculate-btn" onclick="calculateTax()">📊 전세 계산하기</button>
+
+                <div class="result-section" id="resultSection">
+                    <h3 style="color: #d4af37; margin-bottom: 20px; text-align: center;">📋 계산 결과</h3>
+                    <div class="result-item">
+                        <span class="result-label">토지 면적:</span>
+                        <span class="result-value" id="resultArea">-</span>
+                    </div>
+                    <div class="result-item">
+                        <span class="result-label">예상 수확량:</span>
+                        <span class="result-value" id="resultHarvest">-</span>
+                    </div>
+                    <div class="result-item">
+                        <span class="result-label">적용 세율:</span>
+                        <span class="result-value" id="resultTaxRate">-</span>
+                    </div>
+                    <div class="result-item">
+                        <span class="result-label">답험손실법 적용:</span>
+                        <span class="result-value" id="resultMethod">-</span>
+                    </div>
+                    <div class="result-item">
+                        <span class="result-label">🌾 최종 전세 납부액:</span>
+                        <span class="result-value" id="resultTax">-</span>
+                    </div>
+                </div>
+
+                <div class="formula-section">
+                    <h4>💡 계산 공식</h4>
+                    <div class="formula">
+                        기본 수확량 = 토지면적 × 20 × 작물계수
+                    </div>
+                    <div class="formula">
+                        실제 수확량 = 기본수확량 × 기후조건계수
+                    </div>
+                    <div class="formula">
+                        전세 = min(실제수확량 × 0.1, 30두)
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        function calculateTax() {
+            const landArea = parseFloat(document.getElementById('landArea').value);
+            const weather = document.getElementById('weather').value;
+            const cropType = document.getElementById('cropType').value;
+
+            if (!landArea || !weather || !cropType) {
+                alert('모든 항목을 입력해주세요.');
+                return;
+            }
+
+            const cropMultiplier = {
+                'rice': 1.0,
+                'barley': 0.8,
+                'millet': 0.6
+            };
+
+            const weatherMultiplier = {
+                'good': 1.1,
+                'normal': 1.0,
+                'bad': 0.7
+            };
+
+            const baseYield = landArea * 20 * cropMultiplier[cropType];
+            const actualYield = baseYield * weatherMultiplier[weather];
+            const baseTaxRate = 0.1;
+            const rawTax = actualYield * baseTaxRate;
+            const finalTax = Math.min(rawTax, 30);
+
+            document.getElementById('resultArea').textContent = `${landArea}결`;
+            document.getElementById('resultHarvest').textContent = `${actualYield.toFixed(1)}두`;
+            document.getElementById('resultTaxRate').textContent = `${(baseTaxRate * 100)}%`;
+            document.getElementById('resultMethod').textContent = rawTax > 30 ? '최대 30두 제한 적용' : '기본 1/10 세율 적용';
+            document.getElementById('resultTax').textContent = `${finalTax.toFixed(1)}두`;
+
+            document.getElementById('resultSection').style.display = 'block';
+            document.getElementById('resultSection').scrollIntoView({ behavior: 'smooth' });
+        }
+
+        document.addEventListener('keypress', function(e) {
+            if (e.key === 'Enter') {
+                calculateTax();
+            }
+        });
+    </script>
+</body>
+</html>
