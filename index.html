@@ -214,7 +214,7 @@
                     <li>상급: 30두, 중급: 25두, 하급: 20두</li>
                     <li>기후에 따른 수확량 변동 반영</li>
                 </ul>
-                <p>작물별 기본 생산량은 1결당 300두를 기준으로 하며, 작물별 수확계수에 따라 조정됩니다.</p>
+                <p>작물별 기본 생산량은 1결당 30두를 기준으로 하며, 작물별 수확계수에 따라 조정됩니다.</p>
                 <p>기후 조건과 토지 등급에 따른 전세 징수를 체험해 보세요.</p>
             </div>
 
@@ -291,7 +291,7 @@
         }
 
         // 1결당 기본 생산량 (두)
-        const baseYieldPerPlot = 300 * cropCoefficient;
+        const baseYieldPerPlot = 30 * cropCoefficient;
 
         // 실제 수확량 (기후계수 반영)
         const actualYieldPerPlot = baseYieldPerPlot * climateCoefficient;
