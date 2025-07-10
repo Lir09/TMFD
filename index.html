@@ -1,316 +1,463 @@
 <!DOCTYPE html>
-<html lang="ko">
+<html lang="en">
 <head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <title>조선시대 과전법 전세 계산기</title>
-    <style>
-        /* 기존 스타일 유지 (생략 가능) */
-        * {
-            box-sizing: border-box;
-            margin: 0;
-            padding: 0;
-        }
-        body {
-            font-family: 'Malgun Gothic', '맑은 고딕', sans-serif;
-            background: linear-gradient(135deg, #2d1810 0%, #4a2f1f 50%, #6b4423 100%);
-            min-height: 100vh;
-            color: #f4f1e8;
-            padding: 20px;
-        }
-        .container {
-            max-width: 900px;
-            margin: 0 auto;
-            background: rgba(74, 47, 31, 0.9);
-            border-radius: 20px;
-            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.3);
-            overflow: hidden;
-            border: 2px solid #d4af37;
-        }
-        .header {
-            background: linear-gradient(45deg, #8b4513, #a0522d);
-            padding: 30px;
-            text-align: center;
-            border-bottom: 3px solid #d4af37;
-            position: relative;
-        }
-        .header::before {
-            content: '';
-            position: absolute;
-            top: 0;
-            left: 0;
-            right: 0;
-            height: 5px;
-            background: repeating-linear-gradient(
-                90deg,
-                #d4af37 0px,
-                #d4af37 20px,
-                #8b4513 20px,
-                #8b4513 40px
-            );
-        }
-        .header h1 {
-            font-size: 2.5em;
-            color: #d4af37;
-            text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.5);
-            margin-bottom: 10px;
-            font-weight: bold;
-        }
-        .header p {
-            font-size: 1.1em;
-            color: #f4f1e8;
-            opacity: 0.9;
-        }
-        .content {
-            padding: 40px;
-        }
-        .info-section {
-            background: rgba(139, 69, 19, 0.3);
-            padding: 20px;
-            border-radius: 15px;
-            margin-bottom: 30px;
-            border-left: 5px solid #d4af37;
-        }
-        .info-section h3 {
-            color: #d4af37;
-            margin-bottom: 15px;
-            font-size: 1.3em;
-        }
-        .info-section p {
-            line-height: 1.6;
-            margin-bottom: 10px;
-        }
-        .calculator-section {
-            background: rgba(160, 82, 45, 0.2);
-            padding: 30px;
-            border-radius: 15px;
-            margin-bottom: 30px;
-            border: 2px solid rgba(212, 175, 55, 0.3);
-        }
-        .input-group {
-            margin-bottom: 20px;
-        }
-        .input-group label {
-            display: block;
-            margin-bottom: 8px;
-            color: #d4af37;
-            font-weight: bold;
-            font-size: 1.1em;
-        }
-        .input-group input, .input-group select {
-            width: 100%;
-            padding: 12px;
-            border: 2px solid #8b4513;
-            border-radius: 8px;
-            background: rgba(244, 241, 232, 0.95);
-            color: #2d1810;
-            font-size: 1em;
-            transition: all 0.3s ease;
-        }
-        .input-group input:focus, .input-group select:focus {
-            outline: none;
-            border-color: #d4af37;
-            box-shadow: 0 0 10px rgba(212, 175, 55, 0.3);
-        }
-        .calculate-btn {
-            background: linear-gradient(45deg, #d4af37, #f4d03f);
-            color: #2d1810;
-            border: none;
-            padding: 15px 30px;
-            border-radius: 10px;
-            font-size: 1.2em;
-            font-weight: bold;
-            cursor: pointer;
-            transition: all 0.3s ease;
-            box-shadow: 0 5px 15px rgba(212, 175, 55, 0.3);
-            width: 100%;
-            margin-top: 20px;
-        }
-        .calculate-btn:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 8px 20px rgba(212, 175, 55, 0.4);
-        }
-        .result-section {
-            background: rgba(139, 69, 19, 0.4);
-            padding: 25px;
-            border-radius: 15px;
-            margin-top: 20px;
-            border: 2px solid #d4af37;
-            display: none;
-        }
-        .result-item {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            padding: 12px 0;
-            border-bottom: 1px solid rgba(212, 175, 55, 0.3);
-        }
-        .result-item:last-child {
-            border-bottom: none;
-            font-size: 1.2em;
-            font-weight: bold;
-            background: rgba(212, 175, 55, 0.2);
-            padding: 15px;
-            border-radius: 8px;
-            margin-top: 10px;
-        }
-        .result-label {
-            color: #f4f1e8;
-        }
-        .result-value {
-            color: #d4af37;
-            font-weight: bold;
-        }
-        .grid {
-            display: grid;
-            grid-template-columns: 1fr 1fr;
-            gap: 20px;
-        }
-        @media (max-width: 768px) {
-            .grid {
-                grid-template-columns: 1fr;
-            }
-            .header h1 {
-                font-size: 2em;
-            }
-            .content {
-                padding: 20px;
-            }
-        }
-        .formula-section {
-            background: rgba(74, 47, 31, 0.6);
-            padding: 20px;
-            border-radius: 15px;
-            margin-top: 20px;
-            border: 1px solid rgba(212, 175, 55, 0.5);
-        }
-        .formula-section h4 {
-            color: #d4af37;
-            margin-bottom: 15px;
-        }
-        .formula {
-            background: rgba(0, 0, 0, 0.3);
-            padding: 15px;
-            border-radius: 8px;
-            font-family: monospace;
-            color: #f4f1e8;
-            margin: 10px 0;
-        }
-    </style>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>TMFD</title>
+<style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body {
+        font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+        background: linear-gradient(135deg, #747579 0%, #494153 100%);
+        min-height: 100vh;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        padding: 20px;
+    }
+
+    .main-container {
+        display: flex;
+        gap: 30px;
+        max-width: 900px;
+        width: 100%;
+    }
+
+    .calendar-container {
+        flex: 1;
+        background: rgba(40, 40, 40, 0.95);
+        backdrop-filter: blur(10px);
+        border-radius: 20px;
+        box-shadow: 0 20px 40px rgba(0, 0, 0, 0.5);
+        padding: 30px;
+        border: 1px solid rgba(255, 255, 255, 0.1);
+        display: flex;
+        flex-direction: column;
+    }
+
+    #monthYear {
+        text-align: center;
+        font-size: 1.8em;
+        font-weight: 300;
+        color: #ffffff;
+        margin-bottom: 25px;
+        letter-spacing: 1px;
+    }
+
+    .calendar-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 20px;
+    }
+
+    .nav-button {
+        background: none;
+        border: none;
+        font-size: 24px;
+        color: #ffffff;
+        cursor: pointer;
+        padding: 10px;
+        border-radius: 50%;
+        transition: all 0.3s ease;
+        width: 40px;
+        height: 40px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+    }
+
+    .nav-button:hover {
+        background: rgba(255, 255, 255, 0.1);
+        transform: scale(1.1);
+    }
+
+    #calendar {
+        width: 100%;
+        border-collapse: collapse;
+        margin-bottom: 20px;
+    }
+
+    #calendar th {
+        padding: 15px 5px;
+        font-size: 12px;
+        font-weight: 600;
+        color: #999999;
+        text-transform: uppercase;
+        letter-spacing: 1px;
+        border-bottom: 2px solid #404040;
+    }
+
+    #calendar td {
+        width: 14.28%;
+        height: 45px;
+        text-align: center;
+        vertical-align: middle;
+        cursor: pointer;
+        transition: all 0.2s ease;
+        border-radius: 8px;
+        margin: 2px;
+        font-size: 14px;
+        color: #ffffff;
+        position: relative;
+    }
+
+    #calendar td:hover {
+        background: rgba(255, 255, 255, 0.1);
+        transform: scale(1.05);
+    }
+
+    #calendar .today {
+        background: linear-gradient(45deg, #666666, #666666);
+        color: rgb(50, 43, 43);
+        font-weight: bold;
+        box-shadow: 0 4px 15px rgba(50, 38, 38, 0.3);
+    }
+
+    #calendar .today:hover {
+        transform: scale(1.1);
+        box-shadow: 0 6px 20px rgba(135, 135, 136, 0.4);
+    }
+
+    .day-with-event::after {
+        content: '';
+        position: absolute;
+        bottom: 4px;
+        left: 50%;
+        transform: translateX(-50%);
+        width: 6px;
+        height: 6px;
+        background: #ff6b6b;
+        border-radius: 50%;
+    }
+
+    .exam-event::after {
+        content: '';
+        position: absolute;
+        bottom: 4px;
+        left: 50%;
+        transform: translateX(-50%);
+        width: 6px;
+        height: 6px;
+        background: #4da6ff;
+        border-radius: 50%;
+    }
+
+    #eventBanner {
+        background: rgba(50, 50, 50, 0.8);
+        border-radius: 15px;
+        padding: 20px;
+        text-align: center;
+        font-size: 16px;
+        color: #ffffff;
+        min-height: 60px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        transition: all 0.3s ease;
+        border: 2px solid transparent;
+        margin-top: auto;
+    }
+
+    #eventBanner.animate {
+        animation: pulse 0.5s ease;
+        border-color: #666666;
+        background: rgba(102, 102, 102, 0.2);
+    }
+
+    @keyframes pulse {
+        0% { transform: scale(1); }
+        50% { transform: scale(1.02); }
+        100% { transform: scale(1); }
+    }
+
+    #upcomingExamBanner {
+        background: rgba(30, 100, 200, 0.9);
+        color: #fff;
+        border-radius: 10px;
+        padding: 10px 20px;
+        margin-bottom: 15px;
+        font-size: 15px;
+        display: none;
+        animation: pulse 1s infinite alternate;
+        text-align: center;
+    }
+
+    .evaluation-container {
+        flex: 1;
+        background: rgba(40,40,40,0.95);
+        border-radius: 20px;
+        padding: 30px;
+        box-shadow: 0 20px 40px rgba(0,0,0,0.5);
+        color: white;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: flex-start;
+        min-height: 480px;
+    }
+
+    #evaluationTitle {
+        font-size: 1.5em;
+        margin-bottom: 20px;
+        text-align: center;
+        min-height: 2.2em;
+    }
+
+    #evaluationImage {
+        max-width: 100%;
+        border-radius: 10px;
+        border: 1px solid #555;
+        object-fit: contain;
+        max-height: 360px;
+    }
+</style>
 </head>
 <body>
-    <div class="container">
-        <div class="header">
-            <h1>과전법 계산기</h1>
-            <p>당시 조선의 전세제도의 세금 계산을 체험하실 수 있습니다.</p>
+<div class="main-container">
+    <div class="calendar-container">
+        <div id="upcomingExamBanner"></div>
+        <div class="calendar-header">
+            <button class="nav-button" id="prevMonth">‹</button>
+            <div id="monthYear"></div>
+            <button class="nav-button" id="nextMonth">›</button>
         </div>
-        <div class="content">
-            <div class="info-section">
-                <h3>📜 과전법 전세 제도 안내</h3>
-                <p><strong>과전법(科田法)</strong>은 조선 태조 때 시행된 토지 제도로, 공전과 사전을 막론하고 <strong>1/10 세율</strong>을 원칙으로 하였습니다.</p>
-                <p><strong>답험손실법(踏驗損實法)</strong>을 통해 토지 비옥도에 따라 전세의 최대 한도가 다르게 설정되었습니다.</p>
-                <ul>
-                    <li>토지 등급에 따른 최대 전세 한도</li>
-                    <li>상급: 30두, 중급: 25두, 하급: 20두</li>
-                    <li>기후에 따른 수확량 변동 반영</li>
-                </ul>
-                <p>작물별 기본 생산량은 1결당 30두를 기준으로 하며, 작물별 수확계수에 따라 조정됩니다.</p>
-                <p>기후 조건과 토지 등급에 따른 전세 징수를 체험해 보세요.</p>
-            </div>
-
-            <div class="calculator-section">
-                <h3>💰 세금 계산</h3>
-                <div class="input-group">
-                    <label for="landArea">토지 면적(결 단위)</label>
-                    <input type="number" id="landArea" placeholder="예: 1.5" min="0" step="0.1" />
-                </div>
-                <div class="input-group">
-                    <label for="crop">작물 선택</label>
-                    <select id="crop">
-                        <option value="1.0">벼 (수확계수: 1.0)</option>
-                        <option value="0.8">보리 (수확계수: 0.8)</option>
-                        <option value="0.6">조 (수확계수: 0.6)</option>
-                    </select>
-                </div>
-                <div class="input-group">
-                    <label for="climate">기후 조건</label>
-                    <select id="climate">
-                        <option value="1.2">풍년 (1.2배)</option>
-                        <option value="1.0" selected>평년 (1.0배)</option>
-                        <option value="0.8">흉년 (0.8배)</option>
-                    </select>
-                </div>
-                <div class="input-group">
-                    <label for="landGrade">토지 비옥도 등급</label>
-                    <select id="landGrade">
-                        <option value="30">상급 (최대 전세 30두)</option>
-                        <option value="25" selected>중급 (최대 전세 25두)</option>
-                        <option value="20">하급 (최대 전세 20두)</option>
-                    </select>
-                </div>
-                <button class="calculate-btn" onclick="calculateTax()">계산하기</button>
-
-                <div id="result" class="result-section">
-                    <div class="result-item">
-                        <span class="result-label">총 수확량(두):</span>
-                        <span id="totalHarvest" class="result-value"></span>
-                    </div>
-                    <div class="result-item">
-                        <span class="result-label">총 전세(두):</span>
-                        <span id="totalTax" class="result-value"></span>
-                    </div>
-                    <div class="result-item">
-                        <span class="result-label">결당 전세 한도(두):</span>
-                        <span id="maxTaxPerPlot" class="result-value"></span>
-                    </div>
-                </div>
-            </div>
-
-            <div class="formula-section">
-                <h4>📐 계산 공식</h4>
-                <p>기본 수확량 = 30두 × 작물 수확계수</p>
-                <p>실제 수확량 = 기본 수확량 × 기후 계수</p>
-                <p>총 수확량 = 실제 수확량 × 토지 면적(결)</p>
-                <p>총 전세 = 총 수확량 × 10%</p>
-                <p>단, 결당 전세 한도를 초과할 수 없음 (답험손실법 반영)</p>
-            </div>
-        </div>
+        <div id="calendar"></div>
+        <div id="eventBanner">날짜를 선택하세요</div>
     </div>
 
+    <div class="evaluation-container">
+        <div id="evaluationTitle">평가 기준안이 여기 뜹니다</div>
+        <img id="evaluationImage" src="" alt="평가 기준 이미지" style="display:none;" />
+    </div>
+</div>
+<div id="imageModal" style="
+    display:none; 
+    position: fixed; 
+    z-index: 9999; 
+    left: 0; top: 0; width: 100%; height: 100%; 
+    background-color: rgba(0,0,0,0.8); 
+    justify-content: center; align-items: center;">
+    <img id="modalImage" src="" style="max-width: 90%; max-height: 90%; border-radius: 10px;"/>
+</div>
 <script>
-    function calculateTax() {
-        // 입력값 읽기
-        const landArea = parseFloat(document.getElementById('landArea').value);
-        const cropCoefficient = parseFloat(document.getElementById('crop').value);
-        const climateCoefficient = parseFloat(document.getElementById('climate').value);
-        const maxTaxPerPlot = parseFloat(document.getElementById('landGrade').value);
+document.addEventListener('DOMContentLoaded', function() {
+    const today = new Date();
+    let currentMonth = today.getMonth();
+    let currentYear = today.getFullYear();
+    const currentDate = today.getDate();
 
-        if (isNaN(landArea) || landArea <= 0) {
-            alert('토지 면적을 올바르게 입력해주세요.');
-            return;
+    const events = {
+        '2025-03-12': '1학년 수련회',
+        '2025-03-13': '1학년 수련회',
+        '2025-03-14': '1학년 수련회',
+        '2025-03-26': '전국연합학력평가',
+        '2025-04-29': '중간고사',
+        '2025-04-30': '중간고사',
+        '2025-05-01': '중간고사',
+        '2025-05-02': '중간고사',
+        '2025-05-15': '현장체험학습',
+        '2025-05-16': '체육대회',
+        '2025-05-29': '축제',
+        '2025-06-03': '전국연합학력평가 - 부산시',
+        '2025-07-02': '기말고사',
+        '2025-07-03': '기말고사',
+        '2025-07-04': '기말고사',
+        '2025-07-07': '기말고사',
+        '2025-07-08': '기말고사',
+        '2025-07-22': '방학식'
+    };
+
+    const examEvents = {
+        '2025-03-07': {
+            title: '가짜 뉴스가 판치는 세상',
+            image: 'data/reading_discussion_writing/an_evaluation_plan/2/2.pdf'
+        },
+        '2025-04-10': {
+            title: '인지 부조화와 확증편향의 시대',
+            image: 'data/reading_discussion_writing/an_evaluation_plan/2/2.jpg'
+        },
+        '2025-05-08': {
+            title: '사람들은 왜 불합리한 귄위 앞에서 순종하는가?',
+            image: 'data/reading_discussion_writing/an_evaluation_plan/2/2.jpg'
+        },
+        '2025-05-29': {
+            title: '중독은 개인의 책임인가 사회의 문제인가?',
+            image: 'data/reading_discussion_writing/an_evaluation_plan/2/2.jpg'
+        },
+        '2025-06-12': {
+            title: '우리가 기억하는 기억은 진짜 기억인가?',
+            image: 'data/reading_discussion_writing/an_evaluation_plan/2/2.jpg'
+        },
+        '2025-03-31': {
+            title: '시사 논술',
+            image: 'data/society/an_evaluation_plan/1/1.jpg'
+        },
+        '2025-05-19': {
+            title: '독서 탐구 계획서',
+            image: 'data/society/an_evaluation_plan/2/2.jpg'
+        },
+        '2025-04-09': {
+            title: 'H.I.U.',
+            image: 'data/math/an_evaluation_plan/3/3.jpg'
+        },
+        '2025-04-16': {
+            title: 'H.I.U.',
+            image: 'data/math/an_evaluation_plan/3/3.jpg'
+        },
+        '2025-04-23': {
+            title: 'H.I.U.',
+            image: 'data/math/an_evaluation_plan/3/3.jpg'
+        },
+        '2025-05-07': {
+            title: 'H.I.U.',
+            image: 'data/math/an_evaluation_plan/3/3.jpg'
+        },
+        '2025-06-30': {
+            title: '사료 검증 리포트',
+            image: 'data/korean_history/an_evaluation_plan/1/1.jpg'
+        },
+        '2025-07-11': {
+            title: '인사이트 히스토리 노트',
+            image: 'data/korean_history/an_evaluation_plan/2/2.jpg'
+        },
+        '2025-04-21': {
+            title: '과학 탐구 실험 1',
+            image: 'data/a_scientific_experiment/an_evaluation_plan/1/1.jpg'
+        },
+        '2025-05-26': {
+            title: '과학 탐구 실험 2',
+            image: 'data/a_scientific_experiment/an_evaluation_plan/1/1.jpg'
+        },
+        '2025-04-06': {
+            title: 'HS4A project',
+            image: 'data/english/an_evaluation_plan/2/2.jpg'
+        },
+        '2025-04-12': {
+            title: 'Class diary',
+            image: 'data/english/an_evaluation_plan/3/3.jpg'
+        }
+    };
+
+    const monthNames = ['January', 'February', 'March', 'April', 'May', 'June',
+        'July', 'August', 'September', 'October', 'November', 'December'];
+
+    function generateCalendar(month, year) {
+        const firstDay = new Date(year, month, 1).getDay();
+        const daysInMonth = new Date(year, month + 1, 0).getDate();
+        let calendar = '<table><thead><tr>';
+        const days = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
+        for (let d of days) calendar += `<th>${d}</th>`;
+        calendar += '</tr></thead><tbody><tr>';
+
+        for (let i = 0; i < firstDay; i++) calendar += '<td></td>';
+
+        for (let day = 1; day <= daysInMonth; day++) {
+            if ((firstDay + day - 1) % 7 === 0 && day !== 1) calendar += '</tr><tr>';
+            let cls = '';
+            const dateStr = `${year}-${String(month+1).padStart(2,'0')}-${String(day).padStart(2,'0')}`;
+            if (day === currentDate && month === today.getMonth() && year === today.getFullYear()) cls = 'today';
+            if (events[dateStr]) cls += ' day-with-event';
+            if (examEvents[dateStr]) cls += ' exam-event';
+
+            calendar += `<td class="${cls}" data-date="${dateStr}">${day}</td>`;
+        }
+        calendar += '</tr></tbody></table>';
+        document.getElementById('calendar').innerHTML = calendar;
+        document.getElementById('monthYear').textContent = `${monthNames[month]} ${year}`;
+
+        document.querySelectorAll('#calendar td[data-date]').forEach(td => {
+            td.addEventListener('click', function() {
+                const selectedDate = this.getAttribute('data-date');
+                const banner = document.getElementById('eventBanner');
+                const evaluationTitle = document.getElementById('evaluationTitle');
+                const evaluationImage = document.getElementById('evaluationImage');
+
+                if (examEvents[selectedDate]) {
+                    const eventObj = examEvents[selectedDate];
+                    banner.textContent = `${selectedDate}: ${eventObj.title}`;
+                    evaluationTitle.textContent = eventObj.title;
+                    evaluationImage.src = eventObj.image;
+                    evaluationImage.style.display = 'block';
+                } else if (events[selectedDate]) {
+                    banner.textContent = `${selectedDate}: ${events[selectedDate]}`;
+                    evaluationTitle.textContent = '평가 기준안이 없습니다';
+                    evaluationImage.style.display = 'none';
+                    evaluationImage.src = '';
+                } else {
+                    banner.textContent = `${selectedDate}: 일정 없음`;
+                    evaluationTitle.textContent = '평가 기준안이 없습니다';
+                    evaluationImage.style.display = 'none';
+                    evaluationImage.src = '';
+                }
+
+                banner.classList.remove('animate');
+                void banner.offsetWidth;
+                banner.classList.add('animate');
+            });
+        });
+    }
+
+    function checkUpcomingExam() {
+        const upcomingBanner = document.getElementById('upcomingExamBanner');
+        const now = new Date();
+        let closestExam = null;
+        let minDiff = Infinity;
+
+        for (let dateStr in examEvents) {
+            const examDate = new Date(dateStr);
+            const diffDays = Math.ceil((examDate - now) / (1000*60*60*24));
+            if (diffDays > 0 && diffDays <= 3 && diffDays < minDiff) {
+                closestExam = { dateStr, text: examEvents[dateStr].title, diffDays };
+                minDiff = diffDays;
+            }
         }
 
-        // 1결당 기본 생산량 (두)
-        const baseYieldPerPlot = 30 * cropCoefficient;
-
-        // 실제 수확량 (기후계수 반영)
-        const actualYieldPerPlot = baseYieldPerPlot * climateCoefficient;
-
-        // 전체 수확량
-        const totalHarvest = actualYieldPerPlot * landArea;
-
-        // 전세 (1/10), 단 결당 최대 한도 적용
-        const rawTax = totalHarvest * 0.1;
-        const maxTotalTax = maxTaxPerPlot * landArea;
-        const totalTax = Math.min(rawTax, maxTotalTax);
-
-        // 결과 표시
-        document.getElementById('totalHarvest').textContent = totalHarvest.toFixed(2);
-        document.getElementById('totalTax').textContent = totalTax.toFixed(2);
-        document.getElementById('maxTaxPerPlot').textContent = `${maxTaxPerPlot}두`;
-        document.getElementById('result').style.display = 'block';
+        if (closestExam) {
+            upcomingBanner.textContent = `📌 수행평가 D-${closestExam.diffDays}: ${closestExam.text}`;
+            upcomingBanner.style.display = 'block';
+        } else {
+            upcomingBanner.style.display = 'none';
+        }
     }
-</script>
 
+    generateCalendar(currentMonth, currentYear);
+    checkUpcomingExam();
+
+    document.getElementById('prevMonth').addEventListener('click', function() {
+        currentMonth--;
+        if (currentMonth < 0) {
+            currentMonth = 11;
+            currentYear--;
+        }
+        generateCalendar(currentMonth, currentYear);
+    });
+
+    document.getElementById('nextMonth').addEventListener('click', function() {
+        currentMonth++;
+        if (currentMonth > 11) {
+            currentMonth = 0;
+            currentYear++;
+        }
+        generateCalendar(currentMonth, currentYear);
+    });
+});
+
+// 이미지 클릭 시 모달 열기
+document.getElementById('evaluationImage').addEventListener('click', function() {
+    const src = this.src;
+    if (src) {
+        document.getElementById('modalImage').src = src;
+        document.getElementById('imageModal').style.display = 'flex';
+    }
+});
+
+// 모달 클릭 시 닫기
+document.getElementById('imageModal').addEventListener('click', function() {
+    this.style.display = 'none';
+});
+
+</script>
 </body>
 </html>
