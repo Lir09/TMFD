@@ -1,627 +1,551 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="ko">
 <head>
-<meta charset="UTF-8" />
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>TMFD</title>
-<style>
-* { margin: 0; padding: 0; box-sizing: border-box; }
-    body {
-        font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-        background: linear-gradient(135deg, #747579 0%, #494153 100%);
-        min-height: 100vh;
-        display: flex;
-        flex-direction: column;
-        align-items: center;
-        justify-content: center;
-        padding: 20px;
-    }
-    .main-container {
-        display: flex;
-        gap: 30px;
-        max-width: 900px;
-        width: 100%;
-    }
-    .calendar-container {
-        flex: 1;
-        background: rgba(40, 40, 40, 0.95);
-        backdrop-filter: blur(10px);
-        border-radius: 20px;
-        box-shadow: 0 20px 40px rgba(0, 0, 0, 0.5);
-        padding: 30px;
-        border: 1px solid rgba(255, 255, 255, 0.1);
-        display: flex;
-        flex-direction: column;
-    }
-    #monthYear {
-        text-align: center;
-        font-size: 1.8em;
-        font-weight: 300;
-        color: #ffffff;
-        margin-bottom: 25px;
-        letter-spacing: 1px;
-    }
-    .calendar-header {
-        display: flex;
-        justify-content: space-between;
-        align-items: center;
-        margin-bottom: 20px;
-    }
-    .nav-button {
-        background: none;
-        border: none;
-        font-size: 24px;
-        color: #ffffff;
-        cursor: pointer;
-        padding: 10px;
-        border-radius: 50%;
-        transition: all 0.3s ease;
-        width: 40px;
-        height: 40px;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-    }
-    .nav-button:hover {
-        background: rgba(255, 255, 255, 0.1);
-        transform: scale(1.1);
-    }
-    #calendar {
-        width: 100%;
-        border-collapse: collapse;
-        margin-bottom: 20px;
-    }
-    #calendar th {
-        padding: 15px 5px;
-        font-size: 12px;
-        font-weight: 600;
-        color: #999999;
-        text-transform: uppercase;
-        letter-spacing: 1px;
-        border-bottom: 2px solid #404040;
-    }
-    #calendar td {
-        width: 14.28%;
-        height: 45px;
-        text-align: center;
-        vertical-align: middle;
-        cursor: pointer;
-        transition: all 0.2s ease;
-        border-radius: 8px;
-        margin: 2px;
-        font-size: 14px;
-        color: #ffffff;
-        position: relative;
-        user-select: none;
-    }
-    #calendar td:hover {
-        background: rgba(255, 255, 255, 0.1);
-        transform: scale(1.05);
-    }
-    #calendar .today {
-        background: linear-gradient(45deg, #666666, #666666);
-        color: rgb(50, 43, 43);
-        font-weight: bold;
-        box-shadow: 0 4px 15px rgba(50, 38, 38, 0.3);
-    }
-    #calendar .today:hover {
-        transform: scale(1.1);
-        box-shadow: 0 6px 20px rgba(135, 135, 136, 0.4);
-    }
-    .day-with-event::after {
-        content: '';
-        position: absolute;
-        bottom: 4px;
-        left: 50%;
-        transform: translateX(-50%);
-        width: 6px;
-        height: 6px;
-        background: #ff6b6b;
-        border-radius: 50%;
-    }
-    .exam-event::after {
-        content: '';
-        position: absolute;
-        bottom: 4px;
-        left: 50%;
-        transform: translateX(-50%);
-        width: 6px;
-        height: 6px;
-        background: #4da6ff;
-        border-radius: 50%;
-    }
-    #eventBanner {
-        background: rgba(50, 50, 50, 0.8);
-        border-radius: 15px;
-        padding: 20px;
-        text-align: center;
-        font-size: 16px;
-        color: #ffffff;
-        min-height: 60px;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        transition: all 0.3s ease;
-        border: 2px solid transparent;
-        margin-top: auto;
-    }
-    #eventBanner.animate {
-        animation: pulse 0.5s ease;
-        border-color: #666666;
-        background: rgba(102, 102, 102, 0.2);
-    }
-    @keyframes pulse {
-        0% { transform: scale(1); }
-        50% { transform: scale(1.02); }
-        100% { transform: scale(1); }
-    }
-    #upcomingExamBanner {
-        background: rgba(30, 100, 200, 0.9);
-        color: #fff;
-        border-radius: 10px;
-        padding: 10px 20px;
-        margin-bottom: 15px;
-        font-size: 15px;
-        display: none;
-        animation: pulse 1s infinite alternate;
-        text-align: center;
-    }
-    .evaluation-container {
-        flex: 1;
-        background: rgba(40,40,40,0.95);
-        border-radius: 20px;
-        padding: 30px;
-        box-shadow: 0 20px 40px rgba(0,0,0,0.5);
-        color: white;
-        display: flex;
-        flex-direction: column;
-        align-items: center;
-        justify-content: flex-start;
-        min-height: 480px;
-    }
-    #evaluationTitle {
-        font-size: 1.5em;
-        margin-bottom: 20px;
-        text-align: center;
-        min-height: 2.2em;
-    }
-    #evaluationImage {
-        max-width: 100%;
-        border-radius: 10px;
-        border: 1px solid #555;
-        object-fit: contain;
-        max-height: 360px;
-        cursor: pointer;
-    }
-    #addToCalendarBtn {
-        margin-top: 15px;
-        background-color: #4da6ff;
-        border: none;
-        color: white;
-        padding: 12px 25px;
-        font-size: 16px;
-        border-radius: 12px;
-        cursor: pointer;
-        transition: background-color 0.3s ease;
-        user-select: none;
-        align-self: center;
-        display: none;
-    }
-    #addToCalendarBtn:hover:not(:disabled) {
-        background-color: #357acb;
-    }
-    #addToCalendarBtn:disabled {
-        background-color: #777;
-        cursor: not-allowed;
-    }
-    #distributionArea {
-        margin-top: 15px;
-        padding: 15px;
-        background: rgba(60, 60, 60, 0.8);
-        border-radius: 12px;
-        font-size: 15px;
-        white-space: pre-line;
-        min-height: 50px;
-        color: #ddd;
-        text-align: center;
-    }
-    #imageModal {
-        display:none; 
-        position: fixed; 
-        z-index: 9999; 
-        left: 0; top: 0; width: 100%; height: 100%; 
-        background-color: rgba(0,0,0,0.8); 
-        justify-content: center; align-items: center;
-    }
-    #modalImage {
-        max-width: 90%; max-height: 90%; border-radius: 10px;
-    }
-    @media (max-width: 600px) {
-        .main-container {
-            flex-direction: column;
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>TMFD - 시간 관리의 새로운 기준</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        .hero-section {
+            background-image: url('assets/background.jpg');
         }
-        .calendar-container, .evaluation-container {
+        #calendar-view table {
             width: 100%;
-            max-width: none;
+            border-collapse: collapse;
         }
-        #addToCalendarBtn {
-            width: 100%;
-            font-size: 18px;
+        #calendar-view th, #calendar-view td {
+            text-align: center;
+            padding: 0.5rem;
+            border: 1px solid #e2e8f0;
         }
-    }
-
-    /* 기존 #addToCalendarBtn 스타일 복사 후 버튼 아이디만 변경 */
-    #goOtherPageBtn {
-        margin-top: 15px;
-        background-color: #4da6ff;
-        border: none;
-        color: white;
-        padding: 12px 25px;
-        font-size: 16px;
-        border-radius: 12px;
-        cursor: pointer;
-        transition: background-color 0.3s ease;
-        user-select: none;
-        align-self: center;
-    }
-
-    #goOtherPageBtn:hover {
-        background-color: #357acb;
-    }
-</style>
+        #calendar-view td {
+            cursor: pointer;
+            transition: background-color 0.2s;
+        }
+        #calendar-view td:hover {
+            background-color: #f7fafc;
+        }
+        #calendar-view .today {
+            background-color: #ebf8ff;
+            font-weight: bold;
+            color: #2b6cb0;
+        }
+        #calendar-view .selected {
+            background-color: #3182ce;
+            color: white;
+        }
+        #calendar-view .day-with-event::after {
+            content: '';
+            display: block;
+            width: 6px;
+            height: 6px;
+            border-radius: 50%;
+            background-color: #f56565;
+            margin: 2px auto 0;
+        }
+        #calendar-view .exam-event::after {
+            background-color: #48bb78;
+        }
+    </style>
 </head>
-<body>
-<div class="main-container">
-    <div class="calendar-container">
-        <div id="upcomingExamBanner"></div>
-        <div class="calendar-header">
-            <button class="nav-button" id="prevMonth">‹</button>
-            <div id="monthYear"></div>
-            <button class="nav-button" id="nextMonth">›</button>
+<body class="bg-gray-100">
+
+    <!-- Hero Section -->
+    <section class="hero-section h-screen w-full flex flex-col items-center justify-center bg-cover bg-center text-white relative">
+        <div class="absolute inset-0 bg-black opacity-40"></div>
+        <div class="relative z-10 text-center">
+            <h1 class="text-7xl md:text-9xl font-bold" style="text-shadow: 2px 2px 8px rgba(0,0,0,0.7);">TMFD</h1>
+            <p class="mt-4 text-xl md:text-2xl font-light" style="text-shadow: 1px 1px 4px rgba(0,0,0,0.7);">대신고 학생들을 위한 스마트한 시간 관리</p>
         </div>
-        <div id="calendar"></div>
-        <div id="eventBanner">날짜를 선택하세요</div>
-        <button id="addToCalendarBtn" disabled>일정 추가하기 (3일 전 알람 포함)</button>
+        <div class="absolute bottom-10 animate-bounce z-10">
+            <a href="#main-content" aria-label="Scroll down">
+                <svg class="w-8 h-8 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path></svg>
+            </a>
+        </div>
+    </section>
+
+    <!-- Main Content Section -->
+    <main id="main-content" class="container mx-auto p-4 -mt-16 relative z-20">
+        
+        <!-- D-Day Banner -->
+        <div id="upcomingExamBanner" class="hidden bg-orange-100 border-l-4 border-orange-500 text-orange-700 p-4 mb-4 rounded-md shadow-lg" role="alert">
+            <p class="font-bold">D-Day 알림!</p>
+            <p id="upcomingExamText"></p>
+        </div>
+
+        <!-- Header/Nav -->
+        <header class="bg-white shadow-lg rounded-lg p-4 mb-4 sticky top-4 z-30">
+            <div class="flex justify-between items-center">
+                <h2 class="text-2xl font-bold text-gray-800">대시보드</h2>
+                <div>
+                    <button id="add-new-event-btn" class="bg-blue-800 text-white px-4 py-2 rounded-md hover:bg-blue-900 transition-colors shadow">새 일정 추가</button>
+                </div>
+            </div>
+        </header>
+
+        <div class="flex flex-col lg:flex-row gap-4">
+            <!-- Left Panel: Calendar -->
+            <aside class="w-full lg:w-1/3 bg-white p-4 rounded-lg shadow-lg">
+                <div class="flex justify-between items-center mb-4">
+                     <button id="prevMonth" class="p-2 rounded-full hover:bg-gray-200 text-lg font-bold">‹</button>
+                     <h3 id="monthYear" class="text-xl font-semibold text-gray-700"></h3>
+                     <button id="nextMonth" class="p-2 rounded-full hover:bg-gray-200 text-lg font-bold">›</button>
+                </div>
+                <div id="calendar-view">
+                    <!-- Calendar table will be inserted here by JS -->
+                </div>
+            </aside>
+
+            <!-- Right Panel: Schedule List -->
+            <section class="w-full lg:w-2/3 bg-white p-4 rounded-lg shadow-lg">
+                <h3 class="text-xl font-semibold mb-4 text-gray-700">나의 일정</h3>
+                <div class="border-b border-gray-200">
+                    <nav id="schedule-tabs" class="flex space-x-1" aria-label="Tabs">
+                        <a href="#" data-period="today" class="schedule-tab bg-blue-800 text-white px-3 py-2 rounded-md text-sm font-medium">오늘</a>
+                        <a href="#" data-period="this-week" class="schedule-tab text-gray-500 hover:text-gray-700 hover:bg-gray-100 px-3 py-2 rounded-md text-sm font-medium">이번 주</a>
+                        <a href="#" data-period="next-week" class="schedule-tab text-gray-500 hover:text-gray-700 hover:bg-gray-100 px-3 py-2 rounded-md text-sm font-medium">다음 주</a>
+                        <a href="#" data-period="this-month" class="schedule-tab text-gray-500 hover:text-gray-700 hover:bg-gray-100 px-3 py-2 rounded-md text-sm font-medium">이번 달</a>
+                    </nav>
+                </div>
+                <div id="schedule-list" class="mt-4 space-y-3">
+                    <!-- 일정 목록이 여기에 동적으로 추가됩니다. -->
+                </div>
+            </section>
+        </div>
+    </main>
+
+    <!-- Add New Event Modal -->
+    <div id="add-event-modal" class="fixed inset-0 bg-gray-800 bg-opacity-75 flex items-center justify-center hidden z-50">
+        <div class="bg-white rounded-lg shadow-xl p-6 w-full max-w-lg mx-4">
+            <div class="flex justify-between items-center mb-4">
+                <h3 class="text-xl font-bold text-gray-800">새 일정 추가</h3>
+                <button id="add-modal-close-btn" class="text-2xl font-bold text-gray-500 hover:text-gray-800">&times;</button>
+            </div>
+            <form id="add-event-form">
+                <div class="space-y-4">
+                    <div>
+                        <label for="event-type" class="block text-sm font-medium text-gray-700">종류</label>
+                        <select id="event-type" name="event-type" class="mt-1 block w-full pl-3 pr-10 py-2 text-base border-gray-300 focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm rounded-md">
+                            <option value="exam">수행평가/대회</option>
+                            <option value="general">일반 일정</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label for="event-title" class="block text-sm font-medium text-gray-700">제목</label>
+                        <input type="text" name="event-title" id="event-title" required class="mt-1 focus:ring-blue-500 focus:border-blue-500 block w-full shadow-sm sm:text-sm border-gray-300 rounded-md">
+                    </div>
+                    <div>
+                        <label for="event-date" class="block text-sm font-medium text-gray-700">날짜</label>
+                        <input type="date" name="event-date" id="event-date" required class="mt-1 focus:ring-blue-500 focus:border-blue-500 block w-full shadow-sm sm:text-sm border-gray-300 rounded-md">
+                    </div>
+                    <div id="exam-only-fields">
+                        <label for="event-image" class="block text-sm font-medium text-gray-700">평가 기준안 (이미지/PDF 경로, 옵션)</label>
+                        <input type="text" name="event-image" id="event-image" placeholder="예: data/english/an_evaluation_plan/2/2.jpg" class="mt-1 focus:ring-blue-500 focus:border-blue-500 block w-full shadow-sm sm:text-sm border-gray-300 rounded-md">
+                    </div>
+                </div>
+                <div class="flex justify-end mt-6">
+                    <button type="submit" class="bg-blue-800 text-white px-4 py-2 rounded-md hover:bg-blue-900 shadow">저장하기</button>
+                </div>
+            </form>
+        </div>
     </div>
 
-    <div class="evaluation-container">
-        <div id="evaluationTitle">평가 기준안이 여기 뜹니다</div>
-        <img id="evaluationImage" src="" alt="평가 기준 이미지" />
+    <!-- Event Detail Modal -->
+    <div id="event-modal" class="fixed inset-0 bg-gray-800 bg-opacity-75 flex items-center justify-center hidden z-50">
+        <div class="bg-white rounded-lg shadow-xl p-6 w-full max-w-lg mx-4 max-h-[90vh] overflow-y-auto">
+            <div class="flex justify-between items-center mb-4">
+                <h3 id="modal-date" class="text-xl font-bold text-gray-800"></h3>
+                <button id="modal-close-btn" class="text-2xl font-bold text-gray-500 hover:text-gray-800">&times;</button>
+            </div>
+            <div id="modal-content">
+                <h4 id="modal-title" class="text-lg font-semibold mb-2 text-gray-700"></h4>
+                <div id="modal-image-container" class="mb-4 hidden">
+                    <img id="modal-image" src="" alt="Evaluation Plan" class="max-w-full h-auto rounded-md border cursor-pointer">
+                </div>
+                <div id="modal-pdf-container" class="mb-4 hidden">
+                    <a id="modal-pdf-link" href="#" target="_blank" class="inline-block bg-yellow-500 text-white px-4 py-2 rounded-md hover:bg-yellow-600">PDF 평가 기준안 보기</a>
+                </div>
+                <div id="modal-no-event" class="text-gray-500 hidden">
+                    <p>이 날짜에는 등록된 평가가 없습니다.</p>
+                </div>
+            </div>
+            <div class="flex justify-end space-x-2 mt-4 border-t pt-4">
+                 <button id="goOtherPageBtn" class="bg-green-500 text-white px-4 py-2 rounded-md hover:bg-green-600 shadow">일정 분배</button>
+                 <button id="addToCalendarBtn" class="bg-blue-800 text-white px-4 py-2 rounded-md hover:bg-blue-900 shadow" disabled>캘린더에 추가</button>
+            </div>
+        </div>
     </div>
-</div>
 
-<div id="imageModal">
-    <img id="modalImage" />
-</div>
-<!-- 기존 addToCalendarBtn 아래에 추가 -->
-<button id="goOtherPageBtn">일정 분배 사이트 바로가기</button>
+    <!-- Fullscreen Image Modal -->
+    <div id="image-modal-fullscreen" class="fixed inset-0 bg-black bg-opacity-90 flex items-center justify-center hidden z-[60]">
+        <span id="image-modal-close" class="absolute top-4 right-6 text-white text-4xl font-bold cursor-pointer">&times;</span>
+        <img id="modalImageFullscreen" src="" class="max-w-[90%] max-h-[90%]">
+    </div>
 
-<script>
+    <footer class="text-center p-6 mt-6 text-sm text-gray-500">
+        &copy; 2024 TMFD. All Rights Reserved.
+    </footer>
 
-document.getElementById('goOtherPageBtn').addEventListener('click', () => {
-    window.location.href = 'main.html'; // 원하는 링크로 바꾸세요
-});
+    <script>
+    document.addEventListener('DOMContentLoaded', function() {
+        const today = new Date();
+        let currentMonth = today.getMonth();
+        let currentYear = today.getFullYear();
+        const currentDate = today.getDate();
 
-document.addEventListener('DOMContentLoaded', function() {
-    const today = new Date();
-    let currentMonth = today.getMonth();
-    let currentYear = today.getFullYear();
-    const currentDate = today.getDate();
+        // --- DATA ---
+        const events = {
+            '2025-03-12': '1학년 수련회', '2025-03-13': '1학년 수련회', '2025-03-14': '1학년 수련회',
+            '2025-03-26': '전국연합학력평가', '2025-04-29': '중간고사', '2025-04-30': '중간고사',
+            '2025-05-01': '중간고사', '2025-05-02': '중간고사', '2025-05-15': '현장체험학습',
+            '2025-05-16': '체육대회', '2025-05-29': '축제', '2025-06-03': '전국연합학력평가 - 부산시',
+            '2025-07-02': '기말고사', '2025-07-03': '기말고사', '2025-07-04': '기말고사',
+            '2025-07-07': '기말고사', '2025-07-08': '기말고사', '2025-07-22': '방학식'
+        };
+        const examEvents = {
+            '2025-03-07': { title: '가짜 뉴스가 판치는 세상', image: 'data/reading_discussion_writing/an_evaluation_plan/1/2.pdf' },
+            '2025-04-10': { title: '인지 부조화와 확증편향의 시대', image: 'data/reading_discussion_writing/an_evaluation_plan/2/2.jpg' },
+            '2025-03-31': { title: '시사 논술', image: 'data/society/an_evaluation_plan/1/1.jpg' },
+            '2025-05-19': { title: '독서 탐구 계획서', image: 'data/society/an_evaluation_plan/2/2.jpg' },
+            '2025-06-30': { title: '사료 검증 리포트', image: 'data/korean_history/an_evaluation_plan/1/1.jpg' },
+            '2025-07-11': { title: '인사이트 히스토리 노트', image: 'data/korean_history/an_evaluation_plan/2/2.jpg' },
+            '2025-04-21': { title: '과학 탐구 실험 1', image: 'data/a_scientific_experiment/an_evaluation_plan/1/1.jpg' },
+            '2025-04-06': { title: 'HS4A project', image: 'data/english/an_evaluation_plan/2/2.jpg' },
+            '2025-04-12': { title: 'Class diary', image: 'data/english/an_evaluation_plan/3/3.jpg' }
+        };
+        const monthNames = ["1월", "2월", "3월", "4월", "5월", "6월", "7월", "8월", "9월", "10월", "11월", "12월"];
+        let selectedDate = null;
 
-    const events = {
-        '2025-03-12': '1학년 수련회',
-        '2025-03-13': '1학년 수련회',
-        '2025-03-14': '1학년 수련회',
-        '2025-03-26': '전국연합학력평가',
-        '2025-04-29': '중간고사',
-        '2025-04-30': '중간고사',
-        '2025-05-01': '중간고사',
-        '2025-05-02': '중간고사',
-        '2025-05-15': '현장체험학습',
-        '2025-05-16': '체육대회',
-        '2025-05-29': '축제',
-        '2025-06-03': '전국연합학력평가 - 부산시',
-        '2025-07-02': '기말고사',
-        '2025-07-03': '기말고사',
-        '2025-07-04': '기말고사',
-        '2025-07-07': '기말고사',
-        '2025-07-08': '기말고사',
-        '2025-07-22': '방학식'
-    };
+        // --- DOM Elements ---
+        const calendarView = document.getElementById('calendar-view');
+        const monthYearEl = document.getElementById('monthYear');
+        const eventModal = document.getElementById('event-modal');
+        const modalDateEl = document.getElementById('modal-date');
+        const modalTitleEl = document.getElementById('modal-title');
+        const modalImageContainer = document.getElementById('modal-image-container');
+        const modalImageEl = document.getElementById('modal-image');
+        const modalNoEventEl = document.getElementById('modal-no-event');
+        const addToCalendarBtn = document.getElementById('addToCalendarBtn');
+        const modalPdfContainer = document.getElementById('modal-pdf-container');
+        const modalPdfLink = document.getElementById('modal-pdf-link');
+        const addEventModal = document.getElementById('add-event-modal');
+        const addEventForm = document.getElementById('add-event-form');
+        const eventTypeSelect = document.getElementById('event-type');
+        const scheduleList = document.getElementById('schedule-list');
+        const scheduleTabs = document.getElementById('schedule-tabs');
 
-    const examEvents = {
-        '2025-03-07': {
-            title: '가짜 뉴스가 판치는 세상',
-            image: 'data/reading_discussion_writing/an_evaluation_plan/2/2.pdf'
-        },
-        '2025-04-10': {
-            title: '인지 부조화와 확증편향의 시대',
-            image: 'data/reading_discussion_writing/an_evaluation_plan/2/2.jpg'
-        },
-        '2025-05-08': {
-            title: '사람들은 왜 불합리한 권위 앞에서 순종하는가?',
-            image: 'data/reading_discussion_writing/an_evaluation_plan/2/2.jpg'
-        },
-        '2025-05-29': {
-            title: '중독은 개인의 책임인가 사회의 문제인가?',
-            image: 'data/reading_discussion_writing/an_evaluation_plan/2/2.jpg'
-        },
-        '2025-06-12': {
-            title: '우리가 기억하는 기억은 진짜 기억인가?',
-            image: 'data/reading_discussion_writing/an_evaluation_plan/2/2.jpg'
-        },
-        '2025-03-31': {
-            title: '시사 논술',
-            image: 'data/society/an_evaluation_plan/1/1.jpg'
-        },
-        '2025-05-19': {
-            title: '독서 탐구 계획서',
-            image: 'data/society/an_evaluation_plan/2/2.jpg'
-        },
-        '2025-04-09': {
-            title: 'H.I.U.',
-            image: 'data/math/an_evaluation_plan/3/3.jpg'
-        },
-        '2025-04-16': {
-            title: 'H.I.U.',
-            image: 'data/math/an_evaluation_plan/3/3.jpg'
-        },
-        '2025-04-23': {
-            title: 'H.I.U.',
-            image: 'data/math/an_evaluation_plan/3/3.jpg'
-        },
-        '2025-05-07': {
-            title: 'H.I.U.',
-            image: 'data/math/an_evaluation_plan/3/3.jpg'
-        },
-        '2025-06-30': {
-            title: '사료 검증 리포트',
-            image: 'data/korean_history/an_evaluation_plan/1/1.jpg'
-        },
-        '2025-07-11': {
-            title: '인사이트 히스토리 노트',
-            image: 'data/korean_history/an_evaluation_plan/2/2.jpg'
-        },
-        '2025-04-21': {
-            title: '과학 탐구 실험 1',
-            image: 'data/a_scientific_experiment/an_evaluation_plan/1/1.jpg'
-        },
-        '2025-05-26': {
-            title: '과학 탐구 실험 2',
-            image: 'data/a_scientific_experiment/an_evaluation_plan/1/1.jpg'
-        },
-        '2025-04-06': {
-            title: 'HS4A project',
-            image: 'data/english/an_evaluation_plan/2/2.jpg'
-        },
-        '2025-04-12': {
-            title: 'Class diary',
-            image: 'data/english/an_evaluation_plan/3/3.jpg'
-        }
-    };
+        function generateCalendar(month, year) {
+            const firstDay = new Date(year, month, 1).getDay();
+            const daysInMonth = new Date(year, month + 1, 0).getDate();
+            
+            let table = '<table><thead><tr>';
+            const days = ['일', '월', '화', '수', '목', '금', '토'];
+            days.forEach(day => table += `<th>${day}</th>`);
+            table += '</tr></thead><tbody>';
 
-    const examAmounts = {
-    '가짜 뉴스가 판치는 세상': 5,
-    '인지 부조화와 확증편향의 시대': 5,
-    '사람들은 왜 불합리한 권위 앞에서 순종하는가?': 5,
-    '중독은 개인의 책임인가 사회의 문제인가?': 5,
-    '우리가 기억하는 기억은 진짜 기억인가?': 5,
-    '시사 논술': 10,
-    '독서 탐구 계획서': 15,
-    'H.I.U.': 20,
-    '사료 검증 리포트': 15,
-    '인사이트 히스토리 노트': 17,
-    '과학 탐구 실험 1': 8,
-    '과학 탐구 실험 2': 8,
-    'HS4A project': 17,
-    'Class diary': 20 // 파일추가함
-};
-
-    const monthNames = ['January', 'February', 'March', 'April', 'May', 'June',
-        'July', 'August', 'September', 'October', 'November', 'December'];
-
-    let selectedDate = null;
-
-    function generateCalendar(month, year) {
-        const firstDay = new Date(year, month, 1).getDay();
-        const daysInMonth = new Date(year, month + 1, 0).getDate();
-        let calendar = '<table><thead><tr>';
-        const days = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
-        for (let d of days) calendar += `<th>${d}</th>`;
-        calendar += '</tr></thead><tbody><tr>';
-
-        for (let i = 0; i < firstDay; i++) calendar += '<td></td>';
-
-        for (let day = 1; day <= daysInMonth; day++) {
-            if ((firstDay + day - 1) % 7 === 0 && day !== 1) calendar += '</tr><tr>';
-            let cls = '';
-            const dateStr = `${year}-${String(month+1).padStart(2,'0')}-${String(day).padStart(2,'0')}`;
-            if (day === currentDate && month === today.getMonth() && year === today.getFullYear()) cls = 'today';
-            if (events[dateStr]) cls += ' day-with-event';
-            if (examEvents[dateStr]) cls += ' exam-event';
-
-            calendar += `<td class="${cls}" data-date="${dateStr}">${day}</td>`;
-        }
-        calendar += '</tr></tbody></table>';
-        document.getElementById('calendar').innerHTML = calendar;
-        document.getElementById('monthYear').textContent = `${monthNames[month]} ${year}`;
-
-        // 선택된 날짜 표시 초기화
-        document.querySelectorAll('#calendar td').forEach(td => {
-            td.classList.remove('selected');
-        });
-
-        // 클릭 이벤트 등록
-        document.querySelectorAll('#calendar td[data-date]').forEach(td => {
-            td.addEventListener('click', function() {
-                const date = this.getAttribute('data-date');
-                selectedDate = date;
-
-                // 선택 표시 토글 (단일 선택)
-                document.querySelectorAll('#calendar td.selected').forEach(el => el.classList.remove('selected'));
-                this.classList.add('selected');
-
-                const banner = document.getElementById('eventBanner');
-                const evaluationTitle = document.getElementById('evaluationTitle');
-                const evaluationImage = document.getElementById('evaluationImage');
-                const addBtn = document.getElementById('addToCalendarBtn');
-
-                if (examEvents[date]) {
-                    const eventObj = examEvents[date];
-                    banner.textContent = `${date}: ${eventObj.title}`;
-                    evaluationTitle.textContent = eventObj.title;
-                    evaluationImage.src = eventObj.image;
-                    evaluationImage.style.display = 'block';
-                } else if (events[date]) {
-                    banner.textContent = `${date}: ${events[date]}`;
-                    evaluationTitle.textContent = '평가 기준안이 없습니다';
-                    evaluationImage.style.display = 'none';
-                    evaluationImage.src = '';
-                } else {
-                    banner.textContent = `${date}: 일정 없음`;
-                    evaluationTitle.textContent = '평가 기준안이 없습니다';
-                    evaluationImage.style.display = 'none';
-                    evaluationImage.src = '';
+            let date = 1;
+            for (let i = 0; i < 6; i++) {
+                table += '<tr>';
+                for (let j = 0; j < 7; j++) {
+                    if (i === 0 && j < firstDay) {
+                        table += '<td></td>';
+                    } else if (date > daysInMonth) {
+                        break;
+                    } else {
+                        const dateStr = `${year}-${String(month + 1).padStart(2, '0')}-${String(date).padStart(2, '0')}`;
+                        let cls = '';
+                        if (date === currentDate && month === today.getMonth() && year === today.getFullYear()) cls += 'today ';
+                        if (events[dateStr]) cls += 'day-with-event ';
+                        if (examEvents[dateStr]) cls += 'exam-event ';
+                        
+                        table += `<td class="${cls.trim()}" data-date="${dateStr}">${date}</td>`;
+                        date++;
+                    }
                 }
+                table += '</tr>';
+                if (date > daysInMonth) break;
+            }
+            table += '</tbody></table>';
+            calendarView.innerHTML = table;
+            monthYearEl.textContent = `${year}년 ${monthNames[month]}`;
 
-                banner.classList.remove('animate');
-                void banner.offsetWidth;
-                banner.classList.add('animate');
-
-                // 버튼 활성화
-                addBtn.disabled = false;
-                addBtn.style.display = 'block';
+            document.querySelectorAll('#calendar-view td[data-date]').forEach(td => {
+                td.addEventListener('click', handleDateClick);
             });
-        });
-    }
+        }
+        
+        function handleDateClick(e) {
+            selectedDate = e.target.getAttribute('data-date');
+            
+            document.querySelectorAll('#calendar-view td.selected').forEach(d => d.classList.remove('selected'));
+            e.target.classList.add('selected');
 
-    function checkUpcomingExam() {
-        const upcomingBanner = document.getElementById('upcomingExamBanner');
-        const now = new Date();
-        let closestExam = null;
-        let minDiff = Infinity;
+            modalDateEl.textContent = selectedDate;
+            const exam = examEvents[selectedDate];
+            const event = events[selectedDate];
 
-        for (let dateStr in examEvents) {
-            const examDate = new Date(dateStr);
-            const diffDays = Math.ceil((examDate - now) / (1000*60*60*24));
-            if (diffDays > 0 && diffDays <= 3 && diffDays < minDiff) {
-                closestExam = { dateStr, text: examEvents[dateStr].title, diffDays };
-                minDiff = diffDays;
+            // Reset modal state
+            modalImageContainer.classList.add('hidden');
+            modalPdfContainer.classList.add('hidden');
+            modalNoEventEl.classList.add('hidden');
+            modalImageEl.src = '';
+            modalPdfLink.href = '#';
+
+            if (exam) {
+                modalTitleEl.textContent = exam.title;
+                if (exam.image) {
+                    if (exam.image.endsWith('.pdf')) {
+                        modalPdfLink.href = exam.image;
+                        modalPdfContainer.classList.remove('hidden');
+                    } else {
+                        modalImageEl.src = exam.image;
+                        modalImageContainer.classList.remove('hidden');
+                    }
+                }
+                addToCalendarBtn.disabled = false;
+            } else if (event) {
+                modalTitleEl.textContent = event;
+                addToCalendarBtn.disabled = false;
+            } else {
+                modalTitleEl.textContent = '';
+                modalNoEventEl.classList.remove('hidden');
+                addToCalendarBtn.disabled = true;
+            }
+            eventModal.classList.remove('hidden');
+        }
+
+        function renderSchedule(period = 'this-week') {
+            scheduleList.innerHTML = '';
+            const allSchedules = { ...events, ...examEvents };
+            const sortedDates = Object.keys(allSchedules).sort((a, b) => new Date(a) - new Date(b));
+
+            const now = new Date();
+            const today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+            
+            let filteredDates = [];
+
+            if (period === 'today') {
+                filteredDates = sortedDates.filter(date => new Date(date).getTime() === today.getTime());
+            } else if (period === 'this-week') {
+                const dayOfWeek = today.getDay();
+                const startOfWeek = new Date(today);
+                startOfWeek.setDate(today.getDate() - dayOfWeek);
+                const endOfWeek = new Date(startOfWeek);
+                endOfWeek.setDate(startOfWeek.getDate() + 6);
+                filteredDates = sortedDates.filter(date => {
+                    const d = new Date(date);
+                    return d >= startOfWeek && d <= endOfWeek;
+                });
+            } else if (period === 'next-week') {
+                const startOfNextWeek = new Date(today);
+                startOfNextWeek.setDate(today.getDate() - today.getDay() + 7);
+                const endOfNextWeek = new Date(startOfNextWeek);
+                endOfNextWeek.setDate(startOfNextWeek.getDate() + 6);
+                 filteredDates = sortedDates.filter(date => {
+                    const d = new Date(date);
+                    return d >= startOfNextWeek && d <= endOfNextWeek;
+                });
+            } else if (period === 'this-month') {
+                filteredDates = sortedDates.filter(date => {
+                    const d = new Date(date);
+                    return d.getMonth() === today.getMonth() && d.getFullYear() === today.getFullYear();
+                });
+            }
+
+            if (filteredDates.length === 0) {
+                 scheduleList.innerHTML = `<div class="schedule-item border-l-4 border-gray-300 pl-4 py-3"><p class="text-gray-500">선택한 기간에 일정이 없습니다.</p></div>`;
+                 return;
+            }
+
+            filteredDates.forEach(date => {
+                const item = allSchedules[date];
+                const title = typeof item === 'string' ? item : item.title;
+                const isExam = typeof item === 'object';
+                const itemDate = new Date(date);
+                const diffTime = itemDate - today;
+                const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+                
+                let dDayText = '';
+                if (diffDays > 0) dDayText = `D-${diffDays}`;
+                else if (diffDays === 0) dDayText = 'D-Day';
+                else dDayText = `D+${Math.abs(diffDays)}`;
+
+                const color = isExam ? 'orange' : 'green';
+
+                const scheduleItem = `
+                    <div class="schedule-item border-l-4 border-${color}-500 pl-4 py-2 bg-${color}-50 rounded-r-md flex justify-between items-center">
+                        <div>
+                            <p class="font-bold text-gray-800">${title}</p>
+                            <p class="text-sm text-gray-500">${date} (${dDayText})</p>
+                        </div>
+                        <div class="flex items-center space-x-3 pr-4">
+                            ${isExam ? '<span class="text-orange-500 font-bold">★★★</span>' : ''}
+                            <input type="checkbox" class="h-5 w-5 rounded border-gray-300 text-blue-800 focus:ring-blue-700">
+                        </div>
+                    </div>`;
+                scheduleList.insertAdjacentHTML('beforeend', scheduleItem);
+            });
+        }
+
+
+        function checkUpcomingExam() {
+            const banner = document.getElementById('upcomingExamBanner');
+            const bannerText = document.getElementById('upcomingExamText');
+            const now = new Date();
+            now.setHours(0,0,0,0);
+
+            for (let dateStr in examEvents) {
+                const examDate = new Date(dateStr);
+                const diffTime = examDate - now;
+                const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+
+                if (diffDays > 0 && diffDays <= 7) {
+                    bannerText.textContent = `"${examEvents[dateStr].title}" 마감이 ${diffDays}일 남았습니다.`;
+                    banner.classList.remove('hidden');
+                    return;
+                }
             }
         }
+        
+        function generateICS(dateStr, title) {
+            const dt = new Date(dateStr);
+            const start = `${dt.toISOString().slice(0,10).replace(/-/g, '')}`;
+            const dtEnd = new Date(dt);
+            dtEnd.setDate(dt.getDate() + 1);
+            const end = `${dtEnd.toISOString().slice(0,10).replace(/-/g, '')}`;
 
-        if (closestExam) {
-            upcomingBanner.textContent = `📌 수행평가 D-${closestExam.diffDays}: ${closestExam.text}`;
-            upcomingBanner.style.display = 'block';
-        } else {
-            upcomingBanner.style.display = 'none';
-        }
-    }
-
-    function pad(n) {
-        return n < 10 ? '0' + n : n;
-    }
-
-    // 일정 추가를 위한 .ics 파일 생성 함수
-    function generateICS(dateStr, title) {
-        const dt = new Date(dateStr);
-        // 이벤트 시간 (종일 이벤트)
-        const start = dt.toISOString().replace(/[-:]|\.\d{3}/g, '') + 'Z';
-        // 하루 더해서 끝나는 날 (종일 이벤트는 끝나는 날이 다음날)
-        const dtEnd = new Date(dt);
-        dtEnd.setDate(dt.getDate() + 1);
-        const end = dtEnd.toISOString().replace(/[-:]|\.\d{3}/g, '') + 'Z';
-
-        // 3일 전 알람 (알람 시간은 3일 전 오전 9시로 설정)
-        const alarmDate = new Date(dt);
-        alarmDate.setDate(dt.getDate() - 3);
-        alarmDate.setHours(9, 0, 0);
-
-        const alarmTrigger = alarmDate.toISOString().replace(/[-:]|\.\d{3}/g, '');
-
-        // .ics 내용
-        return `BEGIN:VCALENDAR
+            return `BEGIN:VCALENDAR
 VERSION:2.0
-PRODID:-//TMFD Calendar//EN
+PRODID:-//TMFD//EN
 BEGIN:VEVENT
-UID:${dateStr}-tmfd@example.com
-DTSTAMP:${start}
-DTSTART;VALUE=DATE:${dateStr.replace(/-/g, '')}
-DTEND;VALUE=DATE:${dtEnd.toISOString().slice(0,10).replace(/-/g, '')}
+UID:${Date.now()}@tmfd.com
+DTSTAMP:${new Date().toISOString().replace(/[-:.]/g, '')}Z
+DTSTART;VALUE=DATE:${start}
+DTEND;VALUE=DATE:${end}
 SUMMARY:${title}
 BEGIN:VALARM
-TRIGGER:-P3D
-DESCRIPTION:Reminder: ${title} 3일 전 알림
 ACTION:DISPLAY
+DESCRIPTION:Reminder
+TRIGGER:-P3D
 END:VALARM
 END:VEVENT
 END:VCALENDAR`;
-    }
+        }
 
-    // 다운로드 함수
-    function downloadICS(filename, content) {
-        const blob = new Blob([content], { type: 'text/calendar;charset=utf-8' });
-        const url = URL.createObjectURL(blob);
-        const a = document.createElement('a');
-        a.href = url;
-        a.download = filename;
-        document.body.appendChild(a);
-        a.click();
-        setTimeout(() => {
-            document.body.removeChild(a);
+        function downloadICS(filename, content) {
+            const blob = new Blob([content], { type: 'text/calendar;charset=utf-8' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = filename;
+            document.body.appendChild(a);
+            a.click();
             URL.revokeObjectURL(url);
-        }, 0);
-    }
-
-    // 버튼 클릭 시 실행되는 일정 추가 함수
-    document.getElementById('addToCalendarBtn').addEventListener('click', () => {
-        if (!selectedDate) return;
-        const title =
-            examEvents[selectedDate]?.title || 
-            events[selectedDate] || 
-            '일정';
-
-        const icsContent = generateICS(selectedDate, title);
-        const filename = `TMFD_${selectedDate}.ics`;
-        downloadICS(filename, icsContent);
-        alert('일정 파일이 다운로드 되었습니다.\n파일을 열어 달력에 추가하세요.');
-    });
-
-    generateCalendar(currentMonth, currentYear);
-    checkUpcomingExam();
-
-    document.getElementById('prevMonth').addEventListener('click', function() {
-        currentMonth--;
-        if (currentMonth < 0) {
-            currentMonth = 11;
-            currentYear--;
+            document.body.removeChild(a);
         }
+
+        // Event Listeners
+        document.getElementById('prevMonth').addEventListener('click', () => {
+            currentMonth--;
+            if (currentMonth < 0) { currentMonth = 11; currentYear--; }
+            generateCalendar(currentMonth, currentYear);
+        });
+        document.getElementById('nextMonth').addEventListener('click', () => {
+            currentMonth++;
+            if (currentMonth > 11) { currentMonth = 0; currentYear++; }
+            generateCalendar(currentMonth, currentYear);
+        });
+        document.getElementById('modal-close-btn').addEventListener('click', () => eventModal.classList.add('hidden'));
+        document.getElementById('goOtherPageBtn').addEventListener('click', () => window.location.href = 'main.html');
+        
+        addToCalendarBtn.addEventListener('click', () => {
+            if (!selectedDate) return;
+            const title = examEvents[selectedDate]?.title || events[selectedDate] || '새로운 일정';
+            const icsContent = generateICS(selectedDate, title);
+            downloadICS(`${title.replace(/\s/g, '_')}.ics`, icsContent);
+        });
+
+        modalImageEl.addEventListener('click', () => {
+            if (modalImageEl.src) {
+                document.getElementById('modalImageFullscreen').src = modalImageEl.src;
+                document.getElementById('image-modal-fullscreen').classList.remove('hidden');
+            }
+        });
+        document.getElementById('image-modal-fullscreen').addEventListener('click', () => {
+            document.getElementById('image-modal-fullscreen').classList.add('hidden');
+        });
+
+        // Add event modal listeners
+        document.getElementById('add-new-event-btn').addEventListener('click', () => {
+            addEventForm.reset();
+            document.getElementById('event-date').valueAsDate = selectedDate ? new Date(selectedDate) : new Date();
+            document.getElementById('exam-only-fields').style.display = 'block';
+            addEventModal.classList.remove('hidden');
+        });
+
+        document.getElementById('add-modal-close-btn').addEventListener('click', () => {
+            addEventModal.classList.add('hidden');
+        });
+
+        eventTypeSelect.addEventListener('change', (e) => {
+            document.getElementById('exam-only-fields').style.display = e.target.value === 'exam' ? 'block' : 'none';
+        });
+
+        addEventForm.addEventListener('submit', (e) => {
+            e.preventDefault();
+            const formData = new FormData(e.target);
+            const type = formData.get('event-type');
+            const title = formData.get('event-title');
+            const date = formData.get('event-date');
+            const image = formData.get('event-image');
+
+            if (!title || !date) {
+                alert('제목과 날짜를 모두 입력해주세요.');
+                return;
+            }
+
+            if (type === 'exam') {
+                examEvents[date] = { title, image: image || null };
+            } else {
+                events[date] = title;
+            }
+
+            // Recalculate month and year from the date input to prevent calendar jumping
+            const newDate = new Date(date);
+            currentMonth = newDate.getMonth();
+            currentYear = newDate.getFullYear();
+
+            generateCalendar(currentMonth, currentYear);
+            addEventModal.classList.add('hidden');
+            alert('일정이 성공적으로 추가되었습니다!');
+            renderSchedule(scheduleTabs.querySelector('.bg-blue-800').dataset.period);
+        });
+
+
+        // Schedule Tab Listener
+        scheduleTabs.addEventListener('click', (e) => {
+            e.preventDefault();
+            const targetTab = e.target.closest('.schedule-tab');
+            if (!targetTab) return;
+
+            // Update tab styles
+            scheduleTabs.querySelectorAll('.schedule-tab').forEach(tab => {
+                tab.classList.remove('bg-blue-800', 'text-white');
+                tab.classList.add('text-gray-500', 'hover:text-gray-700', 'hover:bg-gray-100');
+            });
+            targetTab.classList.add('bg-blue-800', 'text-white');
+            targetTab.classList.remove('text-gray-500', 'hover:text-gray-700', 'hover:bg-gray-100');
+
+            // Render schedule for the selected period
+            renderSchedule(targetTab.dataset.period);
+        });
+
+
+        // Initial Load
         generateCalendar(currentMonth, currentYear);
+        checkUpcomingExam();
+        renderSchedule('today'); // 초기 로드시 오늘 일정 표시
     });
-
-    document.getElementById('nextMonth').addEventListener('click', function() {
-        currentMonth++;
-        if (currentMonth > 11) {
-            currentMonth = 0;
-            currentYear++;
-        }
-        generateCalendar(currentMonth, currentYear);
-    });
-});
-
-// 이미지 클릭 시 모달 열기
-document.getElementById('evaluationImage').addEventListener('click', function() {
-    const src = this.src;
-    if (src) {
-        document.getElementById('modalImage').src = src;
-        document.getElementById('imageModal').style.display = 'flex';
-    }
-});
-
-// 모달 클릭 시 닫기
-document.getElementById('imageModal').addEventListener('click', function() {
-    this.style.display = 'none';
-});
-</script>
+    </script>
 </body>
-</html>
+</html> 
