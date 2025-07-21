@@ -1,0 +1,23 @@
+{
+  "name": "tmfd",
+  "version": "1.0.0",
+  "description": "",
+  "main": "auth.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/Lir09/TMFD.git"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/Lir09/TMFD/issues"
+  },
+  "homepage": "https://github.com/Lir09/TMFD#readme",
+  "dependencies": {
+    "firebase": "^12.0.0"
+  }
+}
