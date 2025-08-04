@@ -1,0 +1,251 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>TMFD - 로그인</title>
+
+    <style>
+    /* ===== Tripadvisor 감성 로그인 – 전체 스타일 ===== */
+    :root{
+      --ta-green:#007e60;          /* 메인 그린 */
+      --ta-green-dark:#006149;
+      --ta-gray:#666;
+      --surface:#fff;
+      --surface-muted:#f5f7f7;
+      --radius:16px;
+      --shadow-card:0 4px 18px rgba(0,0,0,.08);
+      --shadow-btn:0 6px 20px rgba(0,126,96,.35);
+      --font:'Noto Sans KR','Helvetica Neue',Helvetica,Arial,sans-serif;
+    }
+
+    *,*::before,*::after{margin:0;padding:0;box-sizing:border-box}
+
+    body{
+      font-family:var(--font);
+      background:var(--surface-muted);
+      color:#1d1d1d;
+      min-height:100vh;
+      display:flex;
+      flex-direction:column;
+    }
+
+    /* ----- Header ----- */
+    .header{
+      background:var(--surface);
+      border-bottom:1px solid #e6e6e6;
+    }
+    .header-content{
+      max-width:1140px;
+      margin:0 auto;
+      padding:1rem 24px;
+      display:flex;
+      justify-content:space-between;
+      align-items:center;
+    }
+    .logo{
+      font-size:1.5rem;
+      font-weight:700;
+      color:var(--ta-green);
+      text-decoration:none;
+    }
+    .back-btn{
+      display:inline-flex;align-items:center;gap:.4rem;
+      padding:.45rem 1.2rem;
+      border:1px solid var(--ta-green);
+      background:var(--surface);
+      color:var(--ta-green);
+      font-size:.9rem;font-weight:600;
+      border-radius:9999px;
+      transition:background .25s ease,box-shadow .25s ease,transform .15s;
+      text-decoration:none;
+    }
+    .back-btn:hover{
+      background:var(--ta-green);
+      color:#fff;
+      box-shadow:var(--shadow-btn);
+      transform:translateY(-2px);
+    }
+
+    /* ----- Main ----- */
+    .main-content{
+      flex:1;
+      display:flex;
+      align-items:center;
+      justify-content:center;
+      padding:3rem 1rem;
+    }
+
+    /* ----- Card ----- */
+    .login-container{
+      width:100%;max-width:420px;
+      background:var(--surface);
+      border-radius:var(--radius);
+      box-shadow:var(--shadow-card);
+      padding:3rem 2.4rem;
+      position:relative;
+    }
+    .login-container::before{
+      content:'';
+      position:absolute;top:0;left:0;right:0;height:5px;
+      background:linear-gradient(90deg,#00af87 0%,#35d3b2 50%,#00af87 100%);
+      border-top-left-radius:var(--radius);
+      border-top-right-radius:var(--radius);
+    }
+
+    /* ----- Card Header ----- */
+    .login-header{text-align:center;margin-bottom:2.2rem}
+    .welcome-emoji{
+      font-size:2.4rem;display:block;
+      animation:bounce 2s infinite;
+    }
+    @keyframes bounce{
+      0%,20%,50%,80%,100%{transform:translateY(0)}
+      40%{transform:translateY(-12px)}
+      60%{transform:translateY(-6px)}
+    }
+    .login-title{font-size:1.9rem;font-weight:700;margin-top:.3rem}
+    .login-subtitle{font-size:.95rem;color:var(--ta-gray)}
+
+    /* ----- Form ----- */
+    .form-group{margin-bottom:1.4rem}
+    .form-label{
+      font-weight:600;font-size:.95rem;margin-bottom:.4rem;display:block
+    }
+    .form-input{
+      width:100%;padding:.85rem 1rem;
+      border:1.8px solid #ddd;border-radius:12px;
+      background:#fcfcfc;
+      transition:border-color .25s,box-shadow .25s;
+    }
+    .form-input:focus{
+      border-color:var(--ta-green);
+      box-shadow:0 0 0 3px rgba(0,126,96,.15);
+      outline:none;
+    }
+
+    /* Form Options */
+    .form-options{
+      display:flex;justify-content:space-between;align-items:center;
+      margin-bottom:1.8rem;font-size:.85rem
+    }
+    .remember-me{display:flex;align-items:center;gap:.45rem;cursor:pointer}
+    .remember-me input{accent-color:var(--ta-green)}
+    .forgot_password{
+      color:var(--ta-green);font-weight:600;text-decoration:none
+    }
+    .forgot_password:hover{text-decoration:underline}
+
+    /* Button */
+    .login-btn{
+      width:100%;padding:1rem 1.6rem;
+      background:var(--ta-green);color:#fff;
+      border:none;border-radius:12px;
+      font-weight:700;font-size:1rem;
+      transition:box-shadow .25s,transform .15s;
+    }
+    .login-btn:hover{
+      box-shadow:var(--shadow-btn);
+      transform:translateY(-2px);
+    }
+    .login-btn:active{transform:translateY(0)}
+
+    /* Divider */
+    .divider{
+      text-align:center;margin:2rem 0 1.6rem;
+      position:relative;font-size:.85rem;color:#a0a0a0
+    }
+    .divider::before{
+      content:'';position:absolute;top:50%;left:0;right:0;height:1px;
+      background:#e6e6e6
+    }
+    .divider span{background:var(--surface);padding:0 .8rem;position:relative}
+
+    /* Sign-up */
+    .signup-link{text-align:center;font-size:.9rem;color:var(--ta-gray)}
+    .signup-link a{
+      color:var(--ta-green);font-weight:700;margin-left:.4rem;text-decoration:none
+    }
+    .signup-link a:hover{text-decoration:underline}
+
+    /* Error Message */
+    .error-message{
+      display:block;margin-bottom:1rem;
+      padding:.8rem 1rem;border-left:4px solid #d32f2f;
+      background:#ffeef0;color:#af0023;border-radius:8px
+    }
+
+    /* Mobile */
+    @media(max-width:480px){
+      .login-container{padding:2.2rem 1.6rem}
+      .login-title{font-size:1.6rem}
+    }
+    </style>
+</head>
+
+<body>
+  <header class="header">
+    <div class="header-content">
+      <a href="/" class="logo">TMFD</a>
+      <a href="javascript:history.back()" class="back-btn">← 뒤로가기</a>
+    </div>
+  </header>
+
+  <main class="main-content">
+    <div class="login-container">
+      <div class="login-header">
+        <span class="welcome-emoji">👋</span>
+        <h1 class="login-title">환영합니다!</h1>
+        <p class="login-subtitle">시간관리의 새로운 기준</p>
+      </div>
+
+      {% if error %}
+        <div class="error-message">{{ error }}</div>
+      {% endif %}
+
+      <form action="/login" method="POST">
+        <div class="form-group">
+          <label for="email" class="form-label">이메일</label>
+          <input
+            type="email"
+            id="email"
+            name="email"
+            class="form-input"
+            placeholder="이메일을 입력하세요"
+            required
+          />
+        </div>
+
+        <div class="form-group">
+          <label for="password" class="form-label">비밀번호</label>
+          <input
+            type="password"
+            id="password"
+            name="password"
+            class="form-input"
+            placeholder="비밀번호를 입력하세요"
+            required
+          />
+        </div>
+
+        <div class="form-options">
+          <label class="remember-me">
+            <input type="checkbox" id="remember" name="remember" />
+            로그인 상태 유지
+          </label>
+          <a href="/find_password" class="forgot_password">비밀번호 찾기</a>
+        </div>
+
+        <button type="submit" class="login-btn">🍽️ 로그인하기</button>
+      </form>
+
+      <div class="divider"><span>또는</span></div>
+
+      <div class="signup-link">
+        아직 계정이 없으신가요?
+        <a href="/signup">회원가입</a>
+      </div>
+    </div>
+  </main>
+</body>
+</html>
