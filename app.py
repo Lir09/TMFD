@@ -107,7 +107,6 @@ def login():
         c.execute("SELECT * FROM users WHERE email = ?", (email,))
         user = c.fetchone()
         conn.close()
-        print("user:", user)
         if not user:
             return render_template('login.html', error="존재하지 않는 이메일입니다.")
         if not user[3]:
@@ -118,14 +117,70 @@ def login():
             if remember == "on":
                 session.permanent = True
                 app.permanent_session_lifetime = timedelta(days=7)
-            return redirect(url_for('index'))
+            # admin 계정 분기
+            if user[0] == "admin@admin.com":
+                return redirect(url_for('admin'))
+            else:
+                return redirect(url_for('index'))
         else:
             return render_template('login.html', error="이메일 또는 비밀번호가 잘못되었습니다.")
     return render_template('login.html')
+
+@app.route('/admin/add_activity', methods=['POST'])
+@login_required
+def admin_add_activity():
+    if session.get('email') != 'admin@admin.com':
+        return redirect(url_for('index'))
+    email = request.form.get('email')
+    title = request.form.get('title')
+    points = request.form.get('points')
+    date = request.form.get('date')
+    if not (email and title and points and date):
+        return redirect(url_for('admin'))
+    conn = sqlite3.connect(DB_NAME)
+    c = conn.cursor()
+    c.execute(
+        "INSERT INTO activities (email, title, points, visited_at) VALUES (?, ?, ?, ?)",
+        (email, title, points, date)
+    )
+    conn.commit()
+    conn.close()
+    return redirect(url_for('admin'))
+
 @app.route('/logout')
 def logout():
     session.clear()
     return redirect(url_for('login'))
+
+@app.route('/admin', methods=['GET'])
+@login_required
+def admin():
+    if session.get('email') != 'admin@admin.com':
+        return redirect(url_for('index'))
+    # 모든 계정 정보 가져오기
+    conn = sqlite3.connect(DB_NAME)
+    c = conn.cursor()
+    c.execute("SELECT email, name, phone, password_hash, mileage FROM users")
+    users = c.fetchall()
+    conn.close()
+    return render_template('admin.html', username=session.get('user'), users=users)
+
+@app.route('/admin/delete_user', methods=['POST'])
+@login_required
+def admin_delete_user():
+    if session.get('email') != 'admin@admin.com':
+        return redirect(url_for('index'))
+    email = request.form.get('email')
+    # 자기 자신(admin)은 삭제 불가
+    if email == 'admin@admin.com':
+        return redirect(url_for('admin'))
+    # 삭제
+    conn = sqlite3.connect(DB_NAME)
+    c = conn.cursor()
+    c.execute("DELETE FROM users WHERE email = ?", (email,))
+    conn.commit()
+    conn.close()
+    return redirect(url_for('admin'))
 
 @app.route('/find_password', methods=['GET', 'POST'])
 def find_password():
