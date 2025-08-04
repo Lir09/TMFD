@@ -2,330 +2,169 @@
 <html lang="ko">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>TMFD - 시간 관리의 새로운 기준</title>
+    <title>TMFD - 대시보드</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <style>
-        .hero-section {
-            background-image: url('assets/background.jpg');
+        .intro-section {
+            position: relative;
+            min-height: 100vh;
+            width: 100vw;
+            overflow: hidden;
         }
-        #calendar-view table {
+        .intro-bg {
+            position: absolute;
+            inset: 0;
             width: 100%;
-            border-collapse: collapse;
+            height: 100%;
+            background-image: url('assets/background.jpg');
+            background-size: cover;
+            background-position: center;
+            filter: blur(4px) brightness(0.7); /* 블러를 8px → 4px로 연하게 */
+            z-index: 1;
         }
-        #calendar-view th, #calendar-view td {
-            text-align: center;
-            padding: 0.5rem;
-            border: 1px solid #e2e8f0;
+        .intro-content {
+            position: relative;
+            z-index: 2;
         }
-        #calendar-view td {
+        .scroll-down-btn {
+            background: rgba(0,0,0,0.3);
+            border-radius: 9999px;
+            padding: 0.5rem 1.5rem;
+            color: #fff;
+            font-weight: 600;
+            margin-top: 2rem;
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
             cursor: pointer;
-            transition: background-color 0.2s;
+            transition: background 0.2s;
         }
-        #calendar-view td:hover {
-            background-color: #f7fafc;
-        }
-        #calendar-view .today {
-            background-color: #ebf8ff;
-            font-weight: bold;
-            color: #2b6cb0;
-        }
-        #calendar-view .selected {
-            background-color: #3182ce;
-            color: white;
-        }
-        #calendar-view .day-with-event::after {
-            content: '';
-            display: block;
-            width: 6px;
-            height: 6px;
-            border-radius: 50%;
-            background-color: #f56565;
-            margin: 2px auto 0;
-        }
-        #calendar-view .exam-event::after {
-            background-color: #48bb78;
+        .scroll-down-btn:hover {
+            background: rgba(30,64,175,0.7);
         }
     </style>
 </head>
-<body class="bg-gray-100">
-
-    <!-- Hero Section -->
-    <section class="hero-section h-screen w-full flex flex-col items-center justify-center bg-cover bg-center text-white relative">
-        <div class="absolute inset-0 bg-black opacity-40"></div>
-        <div class="relative z-10 text-center">
-            <h1 class="text-7xl md:text-9xl font-bold" style="text-shadow: 2px 2px 8px rgba(0,0,0,0.7);">TMFD</h1>
-            <p class="mt-4 text-xl md:text-2xl font-light" style="text-shadow: 1px 1px 4px rgba(0,0,0,0.7);">대신고 학생들을 위한 스마트한 시간 관리</p>
-        </div>
-        <div class="absolute bottom-10 animate-bounce z-10">
-            <a href="#main-content" aria-label="Scroll down">
-                <svg class="w-8 h-8 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path></svg>
-            </a>
+<body class="bg-gray-100 min-h-screen">
+    <!-- 인트로/로고 섹션 (블러 배경, 로고/글자만 보임) -->
+    <section class="intro-section flex flex-col items-center justify-center">
+        <div class="intro-bg"></div>
+        <div class="intro-content flex flex-col items-center justify-center min-h-screen">
+            <img src="assets/logo.png" alt="TMFD 로고" class="w-36 h-36 mb-8 drop-shadow-lg" onerror="this.style.display='none'">
+            <h1 class="text-7xl font-extrabold text-white mb-6 tracking-widest drop-shadow-2xl">TMFD</h1>
+            <p class="text-2xl text-white mb-10 text-center drop-shadow-lg font-semibold">나만의 진로·학습·일정 관리 플랫폼</p>
+            <button id="scroll-down" class="scroll-down-btn animate-bounce">
+                <svg class="w-8 h-8" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M19 9l-7 7-7-7"/>
+                </svg>
+                아래로 이동
+            </button>
         </div>
     </section>
 
-    <!-- Main Content Section -->
-    <main id="main-content" class="container mx-auto p-4 -mt-16 relative z-20">
-        
-        <!-- D-Day Banner -->
-        <div id="upcomingExamBanner" class="hidden bg-orange-100 border-l-4 border-orange-500 text-orange-700 p-4 mb-4 rounded-md shadow-lg" role="alert">
-            <p class="font-bold">D-Day 알림!</p>
-            <p id="upcomingExamText"></p>
-        </div>
-
-        <!-- Header/Nav -->
-        <header class="bg-white shadow-lg rounded-lg p-4 mb-4 sticky top-4 z-30">
-            <div class="flex justify-between items-center">
-                <h2 class="text-2xl font-bold text-gray-800">대시보드</h2>
-                <div>
-                    <button id="add-new-event-btn" class="bg-blue-800 text-white px-4 py-2 rounded-md hover:bg-blue-900 transition-colors shadow">새 일정 추가</button>
-                </div>
+    <!-- 대시보드/기능들 (여기부터는 배경 없음, 흰색 카드) -->
+    <section id="dashboard" class="container mx-auto p-4 pt-12">
+        <!-- 헤더/네비게이션 -->
+        <header class="bg-white shadow-lg rounded-lg p-4 mb-4 flex justify-between items-center">
+            <h2 class="text-2xl font-bold text-gray-800">대시보드</h2>
+            <div class="flex items-center gap-4">
+                <div id="user-info" class="text-blue-800 font-semibold"></div>
+                <button id="login-btn" class="bg-gray-200 text-blue-800 px-4 py-2 rounded-md hover:bg-blue-100 transition-colors shadow">로그인</button>
+                <button id="add-new-event-btn" class="bg-blue-800 text-white px-4 py-2 rounded-md hover:bg-blue-900 transition-colors shadow">새 일정 추가</button>
             </div>
         </header>
 
-        <div class="flex flex-col lg:flex-row gap-4">
-            <!-- Left Panel: Calendar -->
-            <aside class="w-full lg:w-1/3 bg-white p-4 rounded-lg shadow-lg">
-                <div class="flex justify-between items-center mb-4">
-                     <button id="prevMonth" class="p-2 rounded-full hover:bg-gray-200 text-lg font-bold">‹</button>
-                     <h3 id="monthYear" class="text-xl font-semibold text-gray-700"></h3>
-                     <button id="nextMonth" class="p-2 rounded-full hover:bg-gray-200 text-lg font-bold">›</button>
-                </div>
-                <div id="calendar-view">
-                    <!-- Calendar table will be inserted here by JS -->
-                </div>
-            </aside>
-
-            <!-- Right Panel: Schedule List -->
-            <section class="w-full lg:w-2/3 bg-white p-4 rounded-lg shadow-lg">
-                <h3 class="text-xl font-semibold mb-4 text-gray-700">나의 일정</h3>
-                <div class="border-b border-gray-200">
-                    <nav id="schedule-tabs" class="flex space-x-1" aria-label="Tabs">
-                        <a href="#" data-period="today" class="schedule-tab bg-blue-800 text-white px-3 py-2 rounded-md text-sm font-medium">오늘</a>
-                        <a href="#" data-period="this-week" class="schedule-tab text-gray-500 hover:text-gray-700 hover:bg-gray-100 px-3 py-2 rounded-md text-sm font-medium">이번 주</a>
-                        <a href="#" data-period="next-week" class="schedule-tab text-gray-500 hover:text-gray-700 hover:bg-gray-100 px-3 py-2 rounded-md text-sm font-medium">다음 주</a>
-                        <a href="#" data-period="this-month" class="schedule-tab text-gray-500 hover:text-gray-700 hover:bg-gray-100 px-3 py-2 rounded-md text-sm font-medium">이번 달</a>
-                    </nav>
-                </div>
-                <div id="schedule-list" class="mt-4 space-y-3">
-                    <!-- 일정 목록이 여기에 동적으로 추가됩니다. -->
-                </div>
-            </section>
+        <!-- 캘린더 -->
+        <div class="bg-white rounded-lg shadow-lg p-6 mb-8">
+            <h3 class="text-xl font-bold mb-4 text-blue-700">캘린더</h3>
+            <div id="calendar-view" class="overflow-x-auto"></div>
         </div>
-    </main>
 
-    <!-- Add New Event Modal -->
-    <div id="add-event-modal" class="fixed inset-0 bg-gray-800 bg-opacity-75 flex items-center justify-center hidden z-50">
-        <div class="bg-white rounded-lg shadow-xl p-6 w-full max-w-lg mx-4">
-            <div class="flex justify-between items-center mb-4">
-                <h3 class="text-xl font-bold text-gray-800">새 일정 추가</h3>
-                <button id="add-modal-close-btn" class="text-2xl font-bold text-gray-500 hover:text-gray-800">&times;</button>
+        <!-- 나의 일정 -->
+        <div class="bg-white rounded-lg shadow-lg p-6 mb-8">
+            <h3 class="text-xl font-bold mb-4 text-blue-700">나의 일정</h3>
+            <div class="border-b border-gray-200 mb-4">
+                <nav id="schedule-tabs" class="flex space-x-1" aria-label="Tabs">
+                    <a href="#" data-period="today" class="schedule-tab text-gray-500 hover:text-gray-700 hover:bg-gray-100 px-3 py-2 rounded-md text-sm font-medium">오늘</a>
+                    <a href="#" data-period="this-week" class="schedule-tab bg-blue-800 text-white px-3 py-2 rounded-md text-sm font-medium">이번 주</a>
+                    <a href="#" data-period="next-week" class="schedule-tab text-gray-500 hover:text-gray-700 hover:bg-gray-100 px-3 py-2 rounded-md text-sm font-medium">다음 주</a>
+                    <a href="#" data-period="this-month" class="schedule-tab text-gray-500 hover:text-gray-700 hover:bg-gray-100 px-3 py-2 rounded-md text-sm font-medium">이번 달</a>
+                </nav>
             </div>
-            <form id="add-event-form">
-                <div class="space-y-4">
-                    <div>
-                        <label for="event-type" class="block text-sm font-medium text-gray-700">종류</label>
-                        <select id="event-type" name="event-type" class="mt-1 block w-full pl-3 pr-10 py-2 text-base border-gray-300 focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm rounded-md">
-                            <option value="exam">수행평가/대회</option>
-                            <option value="general">일반 일정</option>
-                        </select>
-                    </div>
-                    <div>
-                        <label for="event-title" class="block text-sm font-medium text-gray-700">제목</label>
-                        <input type="text" name="event-title" id="event-title" required class="mt-1 focus:ring-blue-500 focus:border-blue-500 block w-full shadow-sm sm:text-sm border-gray-300 rounded-md">
-                    </div>
-                    <div>
-                        <label for="event-date" class="block text-sm font-medium text-gray-700">날짜</label>
-                        <input type="date" name="event-date" id="event-date" required class="mt-1 focus:ring-blue-500 focus:border-blue-500 block w-full shadow-sm sm:text-sm border-gray-300 rounded-md">
-                    </div>
-                    <div id="exam-only-fields">
-                        <label for="event-image" class="block text-sm font-medium text-gray-700">평가 기준안 (이미지/PDF 경로, 옵션)</label>
-                        <input type="text" name="event-image" id="event-image" placeholder="예: data/english/an_evaluation_plan/2/2.jpg" class="mt-1 focus:ring-blue-500 focus:border-blue-500 block w-full shadow-sm sm:text-sm border-gray-300 rounded-md">
-                    </div>
-                </div>
-                <div class="flex justify-end mt-6">
-                    <button type="submit" class="bg-blue-800 text-white px-4 py-2 rounded-md hover:bg-blue-900 shadow">저장하기</button>
-                </div>
-            </form>
+            <div id="schedule-list" class="mt-4 space-y-2"></div>
         </div>
-    </div>
 
-    <!-- Event Detail Modal -->
-    <div id="event-modal" class="fixed inset-0 bg-gray-800 bg-opacity-75 flex items-center justify-center hidden z-50">
-        <div class="bg-white rounded-lg shadow-xl p-6 w-full max-w-lg mx-4 max-h-[90vh] overflow-y-auto">
-            <div class="flex justify-between items-center mb-4">
-                <h3 id="modal-date" class="text-xl font-bold text-gray-800"></h3>
-                <button id="modal-close-btn" class="text-2xl font-bold text-gray-500 hover:text-gray-800">&times;</button>
+        <!-- 대회 정보 -->
+        <div class="bg-white rounded-lg shadow-lg p-6 mb-8">
+            <h3 class="text-xl font-bold mb-4 text-blue-700">대회 정보</h3>
+            <div class="border-b border-gray-200 mb-4">
+                <nav id="contest-tabs" class="flex space-x-1" aria-label="Tabs">
+                    <a href="#" data-type="school" class="contest-tab bg-blue-800 text-white px-3 py-2 rounded-md text-sm font-medium">교내대회</a>
+                    <a href="#" data-type="outside" class="contest-tab text-gray-500 hover:text-gray-700 hover:bg-gray-100 px-3 py-2 rounded-md text-sm font-medium">교외대회</a>
+                </nav>
             </div>
-            <div id="modal-content">
-                <h4 id="modal-title" class="text-lg font-semibold mb-2 text-gray-700"></h4>
-                <div id="modal-image-container" class="mb-4 hidden">
-                    <img id="modal-image" src="" alt="Evaluation Plan" class="max-w-full h-auto rounded-md border cursor-pointer">
-                </div>
-                <div id="modal-pdf-container" class="mb-4 hidden">
-                    <a id="modal-pdf-link" href="#" target="_blank" class="inline-block bg-yellow-500 text-white px-4 py-2 rounded-md hover:bg-yellow-600">PDF 평가 기준안 보기</a>
-                </div>
-                <div id="modal-no-event" class="text-gray-500 hidden">
-                    <p>이 날짜에는 등록된 평가가 없습니다.</p>
-                </div>
-            </div>
-            <div class="flex justify-end space-x-2 mt-4 border-t pt-4">
-                 <button id="goOtherPageBtn" class="bg-green-500 text-white px-4 py-2 rounded-md hover:bg-green-600 shadow">일정 분배</button>
-                 <button id="addToCalendarBtn" class="bg-blue-800 text-white px-4 py-2 rounded-md hover:bg-blue-900 shadow" disabled>캘린더에 추가</button>
-            </div>
+            <div id="contest-list" class="mt-4 space-y-4"></div>
         </div>
-    </div>
-
-    <!-- Fullscreen Image Modal -->
-    <div id="image-modal-fullscreen" class="fixed inset-0 bg-black bg-opacity-90 flex items-center justify-center hidden z-[60]">
-        <span id="image-modal-close" class="absolute top-4 right-6 text-white text-4xl font-bold cursor-pointer">&times;</span>
-        <img id="modalImageFullscreen" src="" class="max-w-[90%] max-h-[90%]">
-    </div>
-
-    <footer class="text-center p-6 mt-6 text-sm text-gray-500">
-        &copy; 2024 TMFD. All Rights Reserved.
-    </footer>
+    </section>
 
     <script>
     document.addEventListener('DOMContentLoaded', function() {
-        const today = new Date();
-        let currentMonth = today.getMonth();
-        let currentYear = today.getFullYear();
-        const currentDate = today.getDate();
+        // 인트로에서 아래로 이동 버튼
+        document.getElementById('scroll-down').addEventListener('click', function() {
+            document.getElementById('dashboard').scrollIntoView({ behavior: 'smooth' });
+        });
 
-        // --- DATA ---
-        const events = {
-            '2025-03-12': '1학년 수련회', '2025-03-13': '1학년 수련회', '2025-03-14': '1학년 수련회',
-            '2025-03-26': '전국연합학력평가', '2025-04-29': '중간고사', '2025-04-30': '중간고사',
-            '2025-05-01': '중간고사', '2025-05-02': '중간고사', '2025-05-15': '현장체험학습',
-            '2025-05-16': '체육대회', '2025-05-29': '축제', '2025-06-03': '전국연합학력평가 - 부산시',
-            '2025-07-02': '기말고사', '2025-07-03': '기말고사', '2025-07-04': '기말고사',
-            '2025-07-07': '기말고사', '2025-07-08': '기말고사', '2025-07-22': '방학식'
-        };
-        const examEvents = {
-            '2025-03-07': { title: '가짜 뉴스가 판치는 세상', image: 'data/reading_discussion_writing/an_evaluation_plan/1/2.pdf' },
-            '2025-04-10': { title: '인지 부조화와 확증편향의 시대', image: 'data/reading_discussion_writing/an_evaluation_plan/2/2.jpg' },
-            '2025-03-31': { title: '시사 논술', image: 'data/society/an_evaluation_plan/1/1.jpg' },
-            '2025-05-19': { title: '독서 탐구 계획서', image: 'data/society/an_evaluation_plan/2/2.jpg' },
-            '2025-06-30': { title: '사료 검증 리포트', image: 'data/korean_history/an_evaluation_plan/1/1.jpg' },
-            '2025-07-11': { title: '인사이트 히스토리 노트', image: 'data/korean_history/an_evaluation_plan/2/2.jpg' },
-            '2025-04-21': { title: '과학 탐구 실험 1', image: 'data/a_scientific_experiment/an_evaluation_plan/1/1.jpg' },
-            '2025-04-06': { title: 'HS4A project', image: 'data/english/an_evaluation_plan/2/2.jpg' },
-            '2025-04-12': { title: 'Class diary', image: 'data/english/an_evaluation_plan/3/3.jpg' }
-        };
-        const monthNames = ["1월", "2월", "3월", "4월", "5월", "6월", "7월", "8월", "9월", "10월", "11월", "12월"];
-        let selectedDate = null;
+        // 로그인 버튼
+        const loginBtn = document.getElementById('login-btn');
+        loginBtn.addEventListener('click', () => {
+            window.location.href = 'login.html';
+        });
 
-        // --- DOM Elements ---
+        // 새 일정 추가 버튼 (예시)
+        document.getElementById('add-new-event-btn').addEventListener('click', () => {
+            alert('새 일정 추가 기능은 추후 구현됩니다.');
+        });
+
+        // 캘린더: 이번 달 달력 표시
         const calendarView = document.getElementById('calendar-view');
-        const monthYearEl = document.getElementById('monthYear');
-        const eventModal = document.getElementById('event-modal');
-        const modalDateEl = document.getElementById('modal-date');
-        const modalTitleEl = document.getElementById('modal-title');
-        const modalImageContainer = document.getElementById('modal-image-container');
-        const modalImageEl = document.getElementById('modal-image');
-        const modalNoEventEl = document.getElementById('modal-no-event');
-        const addToCalendarBtn = document.getElementById('addToCalendarBtn');
-        const modalPdfContainer = document.getElementById('modal-pdf-container');
-        const modalPdfLink = document.getElementById('modal-pdf-link');
-        const addEventModal = document.getElementById('add-event-modal');
-        const addEventForm = document.getElementById('add-event-form');
-        const eventTypeSelect = document.getElementById('event-type');
-        const scheduleList = document.getElementById('schedule-list');
-        const scheduleTabs = document.getElementById('schedule-tabs');
-
-        function generateCalendar(month, year) {
+        function renderCalendar() {
+            const today = new Date();
+            const year = today.getFullYear();
+            const month = today.getMonth();
             const firstDay = new Date(year, month, 1).getDay();
-            const daysInMonth = new Date(year, month + 1, 0).getDate();
-            
-            let table = '<table><thead><tr>';
-            const days = ['일', '월', '화', '수', '목', '금', '토'];
-            days.forEach(day => table += `<th>${day}</th>`);
-            table += '</tr></thead><tbody>';
+            const lastDate = new Date(year, month + 1, 0).getDate();
 
-            let date = 1;
-            for (let i = 0; i < 6; i++) {
-                table += '<tr>';
-                for (let j = 0; j < 7; j++) {
-                    if (i === 0 && j < firstDay) {
-                        table += '<td></td>';
-                    } else if (date > daysInMonth) {
-                        break;
-                    } else {
-                        const dateStr = `${year}-${String(month + 1).padStart(2, '0')}-${String(date).padStart(2, '0')}`;
-                        let cls = '';
-                        if (date === currentDate && month === today.getMonth() && year === today.getFullYear()) cls += 'today ';
-                        if (events[dateStr]) cls += 'day-with-event ';
-                        if (examEvents[dateStr]) cls += 'exam-event ';
-                        
-                        table += `<td class="${cls.trim()}" data-date="${dateStr}">${date}</td>`;
-                        date++;
-                    }
-                }
-                table += '</tr>';
-                if (date > daysInMonth) break;
+            let html = '<table class="w-full text-center table-fixed">';
+            html += '<tr class="text-blue-700 font-semibold"><th>일</th><th>월</th><th>화</th><th>수</th><th>목</th><th>금</th><th>토</th></tr><tr>';
+
+            // 빈칸
+            for (let i = 0; i < firstDay; i++) html += '<td></td>';
+
+            // 날짜
+            for (let d = 1; d <= lastDate; d++) {
+                const date = new Date(year, month, d);
+                const isToday = date.toDateString() === today.toDateString();
+                html += `<td class="${isToday ? 'bg-blue-100 font-bold rounded' : ''}">${d}</td>`;
+                if ((firstDay + d) % 7 === 0) html += '</tr><tr>';
             }
-            table += '</tbody></table>';
-            calendarView.innerHTML = table;
-            monthYearEl.textContent = `${year}년 ${monthNames[month]}`;
-
-            document.querySelectorAll('#calendar-view td[data-date]').forEach(td => {
-                td.addEventListener('click', handleDateClick);
-            });
+            html += '</tr></table>';
+            calendarView.innerHTML = html;
         }
-        
-        function handleDateClick(e) {
-            selectedDate = e.target.getAttribute('data-date');
-            
-            document.querySelectorAll('#calendar-view td.selected').forEach(d => d.classList.remove('selected'));
-            e.target.classList.add('selected');
+        renderCalendar();
 
-            modalDateEl.textContent = selectedDate;
-            const exam = examEvents[selectedDate];
-            const event = events[selectedDate];
-
-            // Reset modal state
-            modalImageContainer.classList.add('hidden');
-            modalPdfContainer.classList.add('hidden');
-            modalNoEventEl.classList.add('hidden');
-            modalImageEl.src = '';
-            modalPdfLink.href = '#';
-
-            if (exam) {
-                modalTitleEl.textContent = exam.title;
-                if (exam.image) {
-                    if (exam.image.endsWith('.pdf')) {
-                        modalPdfLink.href = exam.image;
-                        modalPdfContainer.classList.remove('hidden');
-                    } else {
-                        modalImageEl.src = exam.image;
-                        modalImageContainer.classList.remove('hidden');
-                    }
-                }
-                addToCalendarBtn.disabled = false;
-            } else if (event) {
-                modalTitleEl.textContent = event;
-                addToCalendarBtn.disabled = false;
-            } else {
-                modalTitleEl.textContent = '';
-                modalNoEventEl.classList.remove('hidden');
-                addToCalendarBtn.disabled = true;
-            }
-            eventModal.classList.remove('hidden');
-        }
+        // 일정 데이터 예시
+        const allSchedules = {
+            "2025-08-04": [{ title: "수학 숙제", desc: "문제집 3단원 풀기" }],
+            "2025-08-05": [{ title: "영어 단어 암기", desc: "단어 20개 외우기" }]
+        };
+        const sortedDates = Object.keys(allSchedules).sort();
+        const scheduleList = document.getElementById('schedule-list');
 
         function renderSchedule(period = 'this-week') {
             scheduleList.innerHTML = '';
-            const allSchedules = { ...events, ...examEvents };
-            const sortedDates = Object.keys(allSchedules).sort((a, b) => new Date(a) - new Date(b));
-
-            const now = new Date();
-            const today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
-            
             let filteredDates = [];
-
+            const today = new Date();
             if (period === 'today') {
-                filteredDates = sortedDates.filter(date => new Date(date).getTime() === today.getTime());
+                filteredDates = sortedDates.filter(date => new Date(date).toDateString() === today.toDateString());
             } else if (period === 'this-week') {
                 const dayOfWeek = today.getDay();
                 const startOfWeek = new Date(today);
@@ -341,7 +180,7 @@
                 startOfNextWeek.setDate(today.getDate() - today.getDay() + 7);
                 const endOfNextWeek = new Date(startOfNextWeek);
                 endOfNextWeek.setDate(startOfNextWeek.getDate() + 6);
-                 filteredDates = sortedDates.filter(date => {
+                filteredDates = sortedDates.filter(date => {
                     const d = new Date(date);
                     return d >= startOfNextWeek && d <= endOfNextWeek;
                 });
@@ -351,201 +190,99 @@
                     return d.getMonth() === today.getMonth() && d.getFullYear() === today.getFullYear();
                 });
             }
-
             if (filteredDates.length === 0) {
-                 scheduleList.innerHTML = `<div class="schedule-item border-l-4 border-gray-300 pl-4 py-3"><p class="text-gray-500">선택한 기간에 일정이 없습니다.</p></div>`;
-                 return;
+                scheduleList.innerHTML = `<div class="schedule-item border-l-4 border-gray-300 pl-4 py-3"><p class="text-gray-500">선택한 기간에 일정이 없습니다.</p></div>`;
+                return;
             }
-
             filteredDates.forEach(date => {
-                const item = allSchedules[date];
-                const title = typeof item === 'string' ? item : item.title;
-                const isExam = typeof item === 'object';
-                const itemDate = new Date(date);
-                const diffTime = itemDate - today;
-                const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
-                
-                let dDayText = '';
-                if (diffDays > 0) dDayText = `D-${diffDays}`;
-                else if (diffDays === 0) dDayText = 'D-Day';
-                else dDayText = `D+${Math.abs(diffDays)}`;
-
-                const color = isExam ? 'orange' : 'green';
-
-                const scheduleItem = `
-                    <div class="schedule-item border-l-4 border-${color}-500 pl-4 py-2 bg-${color}-50 rounded-r-md flex justify-between items-center">
-                        <div>
-                            <p class="font-bold text-gray-800">${title}</p>
-                            <p class="text-sm text-gray-500">${date} (${dDayText})</p>
+                allSchedules[date].forEach(item => {
+                    scheduleList.insertAdjacentHTML('beforeend', `
+                        <div class="schedule-item border-l-4 border-blue-400 pl-4 py-3">
+                            <p class="font-semibold">${item.title}</p>
+                            <p class="text-gray-600 text-sm">${item.desc}</p>
+                            <p class="text-xs text-gray-400">${date}</p>
                         </div>
-                        <div class="flex items-center space-x-3 pr-4">
-                            ${isExam ? '<span class="text-orange-500 font-bold">★★★</span>' : ''}
-                            <input type="checkbox" class="h-5 w-5 rounded border-gray-300 text-blue-800 focus:ring-blue-700">
-                        </div>
-                    </div>`;
-                scheduleList.insertAdjacentHTML('beforeend', scheduleItem);
+                    `);
+                });
             });
         }
 
-
-        function checkUpcomingExam() {
-            const banner = document.getElementById('upcomingExamBanner');
-            const bannerText = document.getElementById('upcomingExamText');
-            const now = new Date();
-            now.setHours(0,0,0,0);
-
-            for (let dateStr in examEvents) {
-                const examDate = new Date(dateStr);
-                const diffTime = examDate - now;
-                const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
-
-                if (diffDays > 0 && diffDays <= 7) {
-                    bannerText.textContent = `"${examEvents[dateStr].title}" 마감이 ${diffDays}일 남았습니다.`;
-                    banner.classList.remove('hidden');
-                    return;
-                }
-            }
-        }
-        
-        function generateICS(dateStr, title) {
-            const dt = new Date(dateStr);
-            const start = `${dt.toISOString().slice(0,10).replace(/-/g, '')}`;
-            const dtEnd = new Date(dt);
-            dtEnd.setDate(dt.getDate() + 1);
-            const end = `${dtEnd.toISOString().slice(0,10).replace(/-/g, '')}`;
-
-            return `BEGIN:VCALENDAR
-VERSION:2.0
-PRODID:-//TMFD//EN
-BEGIN:VEVENT
-UID:${Date.now()}@tmfd.com
-DTSTAMP:${new Date().toISOString().replace(/[-:.]/g, '')}Z
-DTSTART;VALUE=DATE:${start}
-DTEND;VALUE=DATE:${end}
-SUMMARY:${title}
-BEGIN:VALARM
-ACTION:DISPLAY
-DESCRIPTION:Reminder
-TRIGGER:-P3D
-END:VALARM
-END:VEVENT
-END:VCALENDAR`;
-        }
-
-        function downloadICS(filename, content) {
-            const blob = new Blob([content], { type: 'text/calendar;charset=utf-8' });
-            const url = URL.createObjectURL(blob);
-            const a = document.createElement('a');
-            a.href = url;
-            a.download = filename;
-            document.body.appendChild(a);
-            a.click();
-            URL.revokeObjectURL(url);
-            document.body.removeChild(a);
-        }
-
-        // Event Listeners
-        document.getElementById('prevMonth').addEventListener('click', () => {
-            currentMonth--;
-            if (currentMonth < 0) { currentMonth = 11; currentYear--; }
-            generateCalendar(currentMonth, currentYear);
-        });
-        document.getElementById('nextMonth').addEventListener('click', () => {
-            currentMonth++;
-            if (currentMonth > 11) { currentMonth = 0; currentYear++; }
-            generateCalendar(currentMonth, currentYear);
-        });
-        document.getElementById('modal-close-btn').addEventListener('click', () => eventModal.classList.add('hidden'));
-        document.getElementById('goOtherPageBtn').addEventListener('click', () => window.location.href = 'main.html');
-        
-        addToCalendarBtn.addEventListener('click', () => {
-            if (!selectedDate) return;
-            const title = examEvents[selectedDate]?.title || events[selectedDate] || '새로운 일정';
-            const icsContent = generateICS(selectedDate, title);
-            downloadICS(`${title.replace(/\s/g, '_')}.ics`, icsContent);
-        });
-
-        modalImageEl.addEventListener('click', () => {
-            if (modalImageEl.src) {
-                document.getElementById('modalImageFullscreen').src = modalImageEl.src;
-                document.getElementById('image-modal-fullscreen').classList.remove('hidden');
-            }
-        });
-        document.getElementById('image-modal-fullscreen').addEventListener('click', () => {
-            document.getElementById('image-modal-fullscreen').classList.add('hidden');
-        });
-
-        // Add event modal listeners
-        document.getElementById('add-new-event-btn').addEventListener('click', () => {
-            addEventForm.reset();
-            document.getElementById('event-date').valueAsDate = selectedDate ? new Date(selectedDate) : new Date();
-            document.getElementById('exam-only-fields').style.display = 'block';
-            addEventModal.classList.remove('hidden');
-        });
-
-        document.getElementById('add-modal-close-btn').addEventListener('click', () => {
-            addEventModal.classList.add('hidden');
-        });
-
-        eventTypeSelect.addEventListener('change', (e) => {
-            document.getElementById('exam-only-fields').style.display = e.target.value === 'exam' ? 'block' : 'none';
-        });
-
-        addEventForm.addEventListener('submit', (e) => {
-            e.preventDefault();
-            const formData = new FormData(e.target);
-            const type = formData.get('event-type');
-            const title = formData.get('event-title');
-            const date = formData.get('event-date');
-            const image = formData.get('event-image');
-
-            if (!title || !date) {
-                alert('제목과 날짜를 모두 입력해주세요.');
-                return;
-            }
-
-            if (type === 'exam') {
-                examEvents[date] = { title, image: image || null };
-            } else {
-                events[date] = title;
-            }
-
-            // Recalculate month and year from the date input to prevent calendar jumping
-            const newDate = new Date(date);
-            currentMonth = newDate.getMonth();
-            currentYear = newDate.getFullYear();
-
-            generateCalendar(currentMonth, currentYear);
-            addEventModal.classList.add('hidden');
-            alert('일정이 성공적으로 추가되었습니다!');
-            renderSchedule(scheduleTabs.querySelector('.bg-blue-800').dataset.period);
-        });
-
-
-        // Schedule Tab Listener
+        // 일정 탭 이벤트
+        const scheduleTabs = document.getElementById('schedule-tabs');
         scheduleTabs.addEventListener('click', (e) => {
             e.preventDefault();
             const targetTab = e.target.closest('.schedule-tab');
             if (!targetTab) return;
-
-            // Update tab styles
             scheduleTabs.querySelectorAll('.schedule-tab').forEach(tab => {
                 tab.classList.remove('bg-blue-800', 'text-white');
                 tab.classList.add('text-gray-500', 'hover:text-gray-700', 'hover:bg-gray-100');
             });
             targetTab.classList.add('bg-blue-800', 'text-white');
             targetTab.classList.remove('text-gray-500', 'hover:text-gray-700', 'hover:bg-gray-100');
-
-            // Render schedule for the selected period
             renderSchedule(targetTab.dataset.period);
         });
+        renderSchedule('this-week');
 
-
-        // Initial Load
-        generateCalendar(currentMonth, currentYear);
-        checkUpcomingExam();
-        renderSchedule('today'); // 초기 로드시 오늘 일정 표시
+        // 대회 데이터 예시
+        const schoolContests = [
+            {
+                title: "교내 과학탐구대회",
+                img: "https://via.placeholder.com/80x80?text=대회1",
+                link: "#"
+            },
+            {
+                title: "교내 글쓰기 대회",
+                img: "https://via.placeholder.com/80x80?text=대회2",
+                link: "#"
+            }
+        ];
+        const outsideContests = [
+            {
+                title: "전국 영어 토론대회",
+                img: "https://via.placeholder.com/80x80?text=대회A",
+                link: "#"
+            },
+            {
+                title: "수학 창의력 경진대회",
+                img: "https://via.placeholder.com/80x80?text=대회B",
+                link: "#"
+            }
+        ];
+        const contestTabs = document.getElementById('contest-tabs');
+        const contestList = document.getElementById('contest-list');
+        function renderContestList(type = 'school') {
+            contestList.innerHTML = '';
+            const data = type === 'school' ? schoolContests : outsideContests;
+            if (data.length === 0) {
+                contestList.innerHTML = `<div class="text-gray-500">등록된 대회가 없습니다.</div>`;
+                return;
+            }
+            data.forEach(contest => {
+                contestList.insertAdjacentHTML('beforeend', `
+                    <div class="flex items-center gap-4">
+                        <img src="${contest.img}" alt="${contest.title}" class="w-20 h-20 rounded-md border">
+                        <div>
+                            <p class="font-semibold">${contest.title}</p>
+                            <a href="${contest.link}" target="_blank" class="text-blue-700 underline text-sm">자세히 보기</a>
+                        </div>
+                    </div>
+                `);
+            });
+        }
+        contestTabs.addEventListener('click', (e) => {
+            e.preventDefault();
+            const targetTab = e.target.closest('.contest-tab');
+            if (!targetTab) return;
+            contestTabs.querySelectorAll('.contest-tab').forEach(tab => {
+                tab.classList.remove('bg-blue-800', 'text-white');
+                tab.classList.add('text-gray-500', 'hover:text-gray-700', 'hover:bg-gray-100');
+            });
+            targetTab.classList.add('bg-blue-800', 'text-white');
+            targetTab.classList.remove('text-gray-500', 'hover:text-gray-700', 'hover:bg-gray-100');
+            renderContestList(targetTab.dataset.type);
+        });
+        renderContestList('school');
     });
     </script>
 </body>
-</html> 
+</html>
