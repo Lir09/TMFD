@@ -92,24 +92,26 @@
         <header class="bg-white shadow-lg rounded-lg p-4 mb-4 flex justify-between items-center">
             <h2 class="text-2xl font-bold text-gray-800">대시보드</h2>
             <div class="flex items-center gap-4">
-                <div id="user-info" class="text-blue-800 font-semibold"></div>
-                <button id="add-new-event-btn" class="bg-blue-800 text-white px-4 py-2 rounded-md hover:bg-blue-900 transition-colors shadow">새 일정 추가</button>
+                <div id="user-info" class="text-[#008264] font-semibold"></div>
+                <button id="add-new-event-btn" class="bg-[#008264] text-white px-4 py-2 rounded-md hover:bg-[#006d53] transition-colors shadow">새 일정 추가</button>
             </div>
         </header>
 
         <!-- 캘린더 -->
         <div class="bg-white rounded-lg shadow-lg p-6 mb-8">
-            <h3 class="text-xl font-bold mb-4 text-blue-700">캘린더</h3>
+            <h3 class="text-xl font-bold mb-4 text-[#008264]">캘린더</h3>
             <div id="calendar-view" class="overflow-x-auto"></div>
         </div>
 
         <!-- 나의 일정 -->
         <div class="bg-white rounded-lg shadow-lg p-6 mb-8">
-            <h3 class="text-xl font-bold mb-4 text-blue-700">나의 일정</h3>
+            <!-- 나의 일정 타이틀 -->
+<h3 class="text-xl font-bold mb-4 text-[#008264]">나의 일정</h3>
+
             <div class="border-b border-gray-200 mb-4">
                 <nav id="schedule-tabs" class="flex space-x-1" aria-label="Tabs">
                     <a href="#" data-period="today" class="schedule-tab text-gray-500 hover:text-gray-700 hover:bg-gray-100 px-3 py-2 rounded-md text-sm font-medium">오늘</a>
-                    <a href="#" data-period="this-week" class="schedule-tab bg-blue-800 text-white px-3 py-2 rounded-md text-sm font-medium">이번 주</a>
+                    <a href="#" data-period="this-week" class="schedule-tab bg-[#008264] text-white px-3 py-2 rounded-md text-sm font-medium">이번 주</a>
                     <a href="#" data-period="next-week" class="schedule-tab text-gray-500 hover:text-gray-700 hover:bg-gray-100 px-3 py-2 rounded-md text-sm font-medium">다음 주</a>
                     <a href="#" data-period="this-month" class="schedule-tab text-gray-500 hover:text-gray-700 hover:bg-gray-100 px-3 py-2 rounded-md text-sm font-medium">이번 달</a>
                 </nav>
@@ -119,16 +121,54 @@
 
         <!-- 대회 정보 -->
         <div class="bg-white rounded-lg shadow-lg p-6 mb-8">
-            <h3 class="text-xl font-bold mb-4 text-blue-700">대회 정보</h3>
+            <!-- 대회 정보 타이틀 -->
+<h3 class="text-xl font-bold mb-4 text-[#008264]">대회 정보</h3>
+
             <div class="border-b border-gray-200 mb-4">
-                <nav id="contest-tabs" class="flex space-x-1" aria-label="Tabs">
-                    <a href="#" data-type="school" class="contest-tab bg-blue-800 text-white px-3 py-2 rounded-md text-sm font-medium">교내대회</a>
-                    <a href="#" data-type="outside" class="contest-tab text-gray-500 hover:text-gray-700 hover:bg-gray-100 px-3 py-2 rounded-md text-sm font-medium">교외대회</a>
-                </nav>
+                <!-- 교내/교외 대회 탭 -->
+<nav id="contest-tabs" class="flex space-x-1" aria-label="Tabs">
+    <a href="#" data-type="school" class="contest-tab bg-[#008264] text-white px-3 py-2 rounded-md text-sm font-medium">교내대회</a>
+    <a href="#" data-type="outside" class="contest-tab text-gray-500 hover:text-gray-700 hover:bg-gray-100 px-3 py-2 rounded-md text-sm font-medium">교외대회</a>
+</nav>
+
             </div>
             <div id="contest-list" class="mt-4 space-y-4"></div>
         </div>
     </section>
+
+    <!-- body 태그 안에 추가 (맨 아래) -->
+<button id="ai-btn" class="fixed bottom-4 left-4 bg-white hover:bg-[#f0f9f7] text-[#008264] rounded-full p-4 shadow-lg transition-all duration-200 z-50 border-2 border-[#008264]">
+    <svg class="w-10 h-10" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+        <path d="M12 2C13.1046 2 14 2.89543 14 4C14 4.74028 13.5978 5.38663 13 5.73244V7H14C17.3137 7 20 9.68629 20 13V15C20 17.2091 18.2091 19 16 19H8C5.79086 19 4 17.2091 4 15V13C4 9.68629 6.68629 7 10 7H11V5.73244C10.4022 5.38663 10 4.74028 10 4C10 2.89543 10.8954 2 12 2Z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+        <path d="M9 11C8.44772 11 8 11.4477 8 12C8 12.5523 8.44772 13 9 13C9.55228 13 10 12.5523 10 12C10 11.4477 9.55228 11 9 11Z" fill="currentColor"/>
+        <path d="M15 11C14.4477 11 14 11.4477 14 12C14 12.5523 14.4477 13 15 13C15.5523 13 16 12.5523 16 12C16 11.4477 15.5523 11 15 11Z" fill="currentColor"/>
+        <path d="M9 15H15" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+    </svg>
+</button>
+
+<!-- AI 프롬프트 모달 -->
+<div id="ai-modal" class="fixed inset-0 bg-black bg-opacity-50 hidden items-center justify-center z-50">
+    <div class="bg-white rounded-lg p-6 w-full max-w-2xl mx-4">
+        <div class="flex justify-between items-center mb-4">
+            <h3 class="text-xl font-semibold text-gray-900">AI 어시스턴트</h3>
+            <button id="close-modal" class="text-gray-500 hover:text-gray-700">
+                <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+                </svg>
+            </button>
+        </div>
+        <div class="mb-4">
+            <input type="text" id="ai-prompt" class="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent" 
+                   placeholder="무엇을 도와드릴까요?">
+        </div>
+        <div id="ai-response" class="bg-gray-50 rounded-lg p-4 mb-4 min-h-[100px] max-h-[300px] overflow-y-auto hidden">
+            <!-- AI 응답이 여기에 표시됩니다 -->
+        </div>
+        <button id="send-prompt" class="bg-[#008264] text-white px-4 py-2 rounded-lg hover:bg-[#006d53] transition-colors">
+            전송
+        </button>
+    </div>
+</div>
 
     <script>
     document.addEventListener('DOMContentLoaded', function() {
@@ -152,7 +192,7 @@
             const lastDate = new Date(year, month + 1, 0).getDate();
 
             let html = '<table class="w-full text-center table-fixed">';
-            html += '<tr class="text-blue-700 font-semibold"><th>일</th><th>월</th><th>화</th><th>수</th><th>목</th><th>금</th><th>토</th></tr><tr>';
+            html += '<tr class="text-[#008264] font-semibold"><th>일</th><th>월</th><th>화</th><th>수</th><th>목</th><th>금</th><th>토</th></tr><tr>';
 
             // 빈칸
             for (let i = 0; i < firstDay; i++) html += '<td></td>';
@@ -161,7 +201,7 @@
             for (let d = 1; d <= lastDate; d++) {
                 const date = new Date(year, month, d);
                 const isToday = date.toDateString() === today.toDateString();
-                html += `<td class="${isToday ? 'bg-blue-100 font-bold rounded' : ''}">${d}</td>`;
+                html += `<td class="${isToday ? 'bg-[#e6f3f0] font-bold rounded' : ''}">${d}</td>`;
                 if ((firstDay + d) % 7 === 0) html += '</tr><tr>';
             }
             html += '</tr></table>';
@@ -215,7 +255,7 @@
             filteredDates.forEach(date => {
                 allSchedules[date].forEach(item => {
                     scheduleList.insertAdjacentHTML('beforeend', `
-                        <div class="schedule-item border-l-4 border-blue-400 pl-4 py-3">
+                        <div class="schedule-item border-l-4 border-[#008264] pl-4 py-3">
                             <p class="font-semibold">${item.title}</p>
                             <p class="text-gray-600 text-sm">${item.desc}</p>
                             <p class="text-xs text-gray-400">${date}</p>
@@ -232,10 +272,10 @@
             const targetTab = e.target.closest('.schedule-tab');
             if (!targetTab) return;
             scheduleTabs.querySelectorAll('.schedule-tab').forEach(tab => {
-                tab.classList.remove('bg-blue-800', 'text-white');
+                tab.classList.remove('bg-[#008264]', 'text-white');
                 tab.classList.add('text-gray-500', 'hover:text-gray-700', 'hover:bg-gray-100');
             });
-            targetTab.classList.add('bg-blue-800', 'text-white');
+            targetTab.classList.add('bg-[#008264]', 'text-white');
             targetTab.classList.remove('text-gray-500', 'hover:text-gray-700', 'hover:bg-gray-100');
             renderSchedule(targetTab.dataset.period);
         });
@@ -281,7 +321,7 @@
                         <img src="${contest.img}" alt="${contest.title}" class="w-20 h-20 rounded-md border">
                         <div>
                             <p class="font-semibold">${contest.title}</p>
-                            <a href="${contest.link}" target="_blank" class="text-blue-700 underline text-sm">자세히 보기</a>
+                            <a href="${contest.link}" target="_blank" class="text-[#008264] underline text-sm">자세히 보기</a>
                         </div>
                     </div>
                 `);
@@ -292,14 +332,49 @@
             const targetTab = e.target.closest('.contest-tab');
             if (!targetTab) return;
             contestTabs.querySelectorAll('.contest-tab').forEach(tab => {
-                tab.classList.remove('bg-blue-800', 'text-white');
+                tab.classList.remove('bg-[#008264]', 'text-white');
                 tab.classList.add('text-gray-500', 'hover:text-gray-700', 'hover:bg-gray-100');
             });
-            targetTab.classList.add('bg-blue-800', 'text-white');
+            targetTab.classList.add('bg-[#008264]', 'text-white');
             targetTab.classList.remove('text-gray-500', 'hover:text-gray-700', 'hover:bg-gray-100');
             renderContestList(targetTab.dataset.type);
         });
         renderContestList('school');
+
+        // AI 버튼 및 모달 관련
+    const aiBtn = document.getElementById('ai-btn');
+    const aiModal = document.getElementById('ai-modal');
+    const closeModal = document.getElementById('close-modal');
+    const sendPrompt = document.getElementById('send-prompt');
+    const aiPrompt = document.getElementById('ai-prompt');
+    const aiResponse = document.getElementById('ai-response');
+
+    aiBtn.addEventListener('click', () => {
+        aiModal.classList.remove('hidden');
+        aiModal.classList.add('flex');
+    });
+
+    closeModal.addEventListener('click', () => {
+        aiModal.classList.add('hidden');
+        aiModal.classList.remove('flex');
+    });
+
+    sendPrompt.addEventListener('click', () => {
+        const prompt = aiPrompt.value.trim();
+        if (prompt) {
+            aiResponse.classList.remove('hidden');
+            aiResponse.innerHTML = '<div class="animate-pulse">AI가 응답을 생성중입니다...</div>';
+            // 여기에 실제 AI API 호출 코드를 추가하세요
+        }
+    });
+
+    // 모달 외부 클릭 시 닫기
+    aiModal.addEventListener('click', (e) => {
+        if (e.target === aiModal) {
+            aiModal.classList.add('hidden');
+            aiModal.classList.remove('flex');
+        }
+    });
     });
     </script>
 </body>
