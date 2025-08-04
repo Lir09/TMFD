@@ -35,7 +35,6 @@ def init_db():
     else:
         conn = sqlite3.connect(DB_NAME)
         c = conn.cursor()
-        # 혹시 없을 수도 있으니 추가
         c.execute('''
             CREATE TABLE IF NOT EXISTS activities (
                 id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -82,7 +81,6 @@ def signup():
         email = request.form['email']
         name = request.form['name']
         phone = request.form['phone']
-        address = request.form['address']
         password = request.form['password']
         conn = sqlite3.connect(DB_NAME)
         c = conn.cursor()
@@ -91,7 +89,8 @@ def signup():
             conn.close()
             return render_template('signup.html', error="이미 등록된 이메일입니다.")
         pw_hash = bcrypt.hashpw(password.encode('utf-8'), bcrypt.gensalt())
-        c.execute("INSERT INTO users VALUES (?, ?, ?, ?, ?, ?)", (email, name, phone, address, pw_hash, 2500))
+        c.execute("INSERT INTO users (email, name, phone, password_hash, mileage) VALUES (?, ?, ?, ?, ?)",
+                  (email, name, phone, pw_hash, 2500))
         conn.commit()
         conn.close()
         return redirect(url_for('login'))
@@ -108,7 +107,12 @@ def login():
         c.execute("SELECT * FROM users WHERE email = ?", (email,))
         user = c.fetchone()
         conn.close()
-        if user and bcrypt.checkpw(password.encode('utf-8'), user[4]):
+        print("user:", user)
+        if not user:
+            return render_template('login.html', error="존재하지 않는 이메일입니다.")
+        if not user[3]:
+            return render_template('login.html', error="비밀번호 데이터가 손상되었습니다. 회원가입을 다시 해주세요.")
+        if bcrypt.checkpw(password.encode('utf-8'), user[3]):
             session['user'] = user[1]
             session['email'] = user[0]
             if remember == "on":
@@ -118,7 +122,6 @@ def login():
         else:
             return render_template('login.html', error="이메일 또는 비밀번호가 잘못되었습니다.")
     return render_template('login.html')
-
 @app.route('/logout')
 def logout():
     session.clear()
