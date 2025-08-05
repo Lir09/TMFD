@@ -381,13 +381,8 @@
         }
     });
 
-    document.getElementById('logout-btn').addEventListener('click', function() {
-    fetch('/logout')
-        .then(response => response.json())
-        .then(data => {
-            alert(data.message);
-            window.location.href = '/login';
-        });
+document.getElementById('logout-btn').addEventListener('click', function() {
+    window.location.href = '/logout';
 });
     });
     </script>
