@@ -150,7 +150,7 @@ def admin_add_activity():
 @app.route('/logout')
 def logout():
     session.clear()
-    return redirect(url_for('login'))
+    return jsonify({"message": "로그아웃 성공!"})
 
 @app.route('/admin', methods=['GET'])
 @login_required

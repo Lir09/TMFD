@@ -93,7 +93,12 @@
             <h2 class="text-2xl font-bold text-gray-800">대시보드</h2>
             <div class="flex items-center gap-4">
                 <div id="user-info" class="text-[#008264] font-semibold"></div>
-                <button id="add-new-event-btn" class="bg-[#008264] text-white px-4 py-2 rounded-md hover:bg-[#006d53] transition-colors shadow">새 일정 추가</button>
+                <button id="add-new-event-btn" class="bg-[#008264] text-white px-4 py-2 rounded-md hover:bg-[#006d53] transition-colors shadow">
+                    새 일정 추가
+                </button>
+                <button id="logout-btn" class="bg-red-500 text-white px-4 py-2 rounded-md hover:bg-red-600 transition-colors shadow">
+                    로그아웃
+                </button>
             </div>
         </header>
 
@@ -375,6 +380,15 @@
             aiModal.classList.remove('flex');
         }
     });
+
+    document.getElementById('logout-btn').addEventListener('click', function() {
+    fetch('/logout')
+        .then(response => response.json())
+        .then(data => {
+            alert(data.message);
+            window.location.href = '/login';
+        });
+});
     });
     </script>
 </body>
