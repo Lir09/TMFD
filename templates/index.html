@@ -1,390 +1,323 @@
 <!DOCTYPE html>
 <html lang="ko">
 <head>
-    <meta charset="UTF-8">
-    <title>TMFD - 대시보드</title>
-    <script src="https://cdn.tailwindcss.com"></script>
-    <style>
-.intro-section {
-    position: relative;
-    min-height: 100vh;
-    width: 100vw;
-    overflow: hidden;
-}
-.intro-bg {
-    position: absolute;
-    inset: 0;
-    width: 100%;
-    height: 100%;
-    background-image: url('/static/images/background.jpg');
-    background-size: cover;
-    background-position: center;
-    filter: blur(4px) brightness(0.7);
-    z-index: 1;
-}
-.intro-content {
-    position: relative;
-    z-index: 2;
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>TMFD</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&family=Noto+Sans+KR:wght@400;500;700&display=swap" rel="stylesheet">
+  <style>
+/* Reset & base */
+* { box-sizing: border-box; }
+html, body { height: 100%; }
+body { margin:0; font-family:'Inter','Noto Sans KR',system-ui,-apple-system,Segoe UI,Roboto,'Apple SD Gothic Neo',sans-serif; color:#151515; background:#fff; }
+
+/* Layout */
+.container { max-width:1120px; margin:0 auto; padding:0 20px; display:flex; align-items:center; gap:16px; }
+.container.narrow { max-width:920px; flex-direction:column; }
+
+/* Header */
+.site-header { border-bottom:1px solid #eaeaea; background:#fff; }
+.site-header .container { height:64px; justify-content:space-between; }
+.logo img { height:45px; display:block; }
+.main-nav { display:none; gap:22px; letter-spacing:.02em; }
+.main-nav a { text-decoration:none; color:#222; font-weight:600; font-size:14px; }
+.main-nav a.active { background:#111; color:#fff; padding:6px 10px; border-radius:3px; }
+.user-actions { display:flex; gap:14px; align-items:center; }
+.small-link { text-decoration:none; color:#666; font-size:13px; }
+
+/* Icons (간단) */
+.icon-btn { width:36px; height:36px; border:0; background:transparent; display:grid; place-items:center; cursor:pointer; }
+.i-globe { width:20px; height:20px; border:1.6px solid #222; border-radius:50%; position:relative; }
+.i-globe::before, .i-globe::after { content:''; position:absolute; background:#222; left:50%; transform:translateX(-50%); }
+.i-globe::before { top:2px; bottom:2px; width:1.6px; }
+.i-globe::after { top:50%; height:1.6px; width:70%; }
+
+/* Title */
+.title-block { padding:32px 0 12px; text-align:center; }
+.title-block h1 { margin:0 0 8px; font-weight:800; letter-spacing:.02em; font-size:36px; }
+.title-block .subtitle { margin:0; color:#666; font-size:13px; }
+.title-block .divider { width:40px; height:3px; background:#111; display:inline-block; margin-top:16px; border-radius:2px; }
+
+/* Toolbar */
+.calendar-wrap { padding:16px 0 56px; }
+.cal-toolbar { width:100%; display:flex; align-items:center; justify-content:space-between; margin:14px 0 10px; }
+.cal-month { display:flex; align-items:center; gap:12px; font-size:16px; }
+.cal-arrows { display:flex; gap:6px; }
+.cal-views { display:flex; gap:8px; }
+.view-btn { min-width:42px; height:34px; padding:0 10px; border:1px solid #ddd; background:#fff; border-radius:4px; cursor:pointer; font-weight:600; }
+.view-btn.active { background:#111; color:#fff; border-color:#111; }
+
+/* Calendar */
+.calendar { width:100%; border:1px solid #eee; border-radius:8px; overflow:hidden; }
+.cal-head { display:grid; grid-template-columns:repeat(7,1fr); background:#fafafa; border-bottom:1px solid #eee; }
+.cal-head>div { padding:10px 12px; font-weight:600; color:#666; font-size:13px; }
+.cal-body { display:grid; grid-template-columns:repeat(7,1fr); grid-auto-rows:110px; }
+.calendar.is-week .cal-body { grid-auto-rows:150px; } /* 주간은 1줄 크게 */
+.day { position:relative; border-right:1px solid #eee; border-bottom:1px solid #eee; padding:6px 8px; }
+.day:nth-child(7n) { border-right:0; }
+.day .date { font-size:12px; color:#444; }
+.day.muted .date { color:#bbb; }
+.day.today { outline:2px solid #111; outline-offset:-2px; border-radius:6px; }
+.day.today .date { background:#111; color:#fff; border-radius:999px; padding:1px 6px; }
+
+/* Event pill */
+.event { position:absolute; left:8px; right:8px; top:30px; background:#efefef; border-left:3px solid #cfcfcf; padding:6px 8px; border-radius:4px; font-size:12px; color:#333; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+.day.has-dot .date::after { content:''; display:inline-block; width:14px; height:14px; background:#111; border-radius:50%; margin-left:6px; vertical-align:middle; }
+
+/* hover */
+.sub-nav:hover{ font-size: 15px; text-decoration: underline; text-decoration-thickness: 2px;}
+
+/* Burger 표시용 */
+.threeline { font-size:30px; }
+
+/* Responsive */
+@media (min-width:960px){ .main-nav{ display:flex; } }
+@media (max-width:640px){ .cal-body{ grid-auto-rows:88px; } .title-block h1{ font-size:28px; } }
+
+#typingTitle {
+  cursor: pointer;
+  font-weight: 800;
+  font-size: 36px;
+  display: inline-block;
+  transition: all 0.8s ease;
 }
 
-.intro-content h1 {
-    font-size: 4.5rem;
-    font-weight: 800;
-    color: #fff;
-    margin-bottom: 1.5rem;
-    letter-spacing: 0.15em;
-    text-shadow: 0 2px 16px rgba(30, 41, 59, 0.4);
+.fade-out {
+  opacity: 0;
+  transform: scale(0.9);
+  transition: all 0.5s ease;
 }
-.intro-content p {
-    font-size: 1.5rem;
-    color: #fff;
-    text-align: center;
-    margin-bottom: 2.5rem;
-    font-weight: 600;
-    text-shadow: 0 2px 10px rgba(30, 41, 59, 0.35);
+.fade-in {
+  opacity: 1;
+  transform: scale(1);
+  transition: all 0.5s ease;
 }
-
-.scroll-down-btn {
-    background: rgba(0,0,0,0.3);
-    border-radius: 9999px;
-    padding: 0.5rem 1.5rem;
-    color: #fff;
-    font-weight: 600;
-    margin-top: 2rem;
-    display: inline-flex;
-    align-items: center;
-    gap: 0.5rem;
-    cursor: pointer;
-    transition: background 0.2s;
-    box-shadow: 0 4px 16px rgba(30,41,59,0.13);
-}
-.scroll-down-btn:hover {
-    background: rgba(30,64,175,0.7);
-}
-.animate-bounce {
-    animation: bounce 2s infinite;
-}
-@keyframes bounce {
-    0%, 20%, 50%, 80%, 100% { transform: translateY(0);}
-    40% { transform: translateY(-14px);}
-    60% { transform: translateY(-8px);}
-}
-    </style>
+  </style>
 </head>
-<body class="bg-gray-100 min-h-screen">
-    <section class="intro-section flex flex-col items-center justify-center">
-        <div class="intro-bg"></div>
-        <div class="intro-content flex flex-col items-center justify-center min-h-screen">
-            <h1 class="text-7xl font-extrabold text-white mb-6 tracking-widest drop-shadow-2xl">TMFD</h1>
-            <p class="text-2xl text-white mb-10 text-center drop-shadow-lg font-semibold">나만의 진로·학습·일정 관리 플랫폼</p>
-            <button id="scroll-down" class="scroll-down-btn animate-bounce">
-                <svg class="w-8 h-8" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" d="M19 9l-7 7-7-7"/>
-                </svg>
-                아래로 이동
-            </button>
-        </div>
-    </section>
-
-    <!-- 대시보드/기능들 (여기부터는 배경 없음, 흰색 카드) -->
-    <section id="dashboard" class="container mx-auto p-4 pt-12">
-        <!-- 헤더/네비게이션 -->
-        <header class="bg-white shadow-lg rounded-lg p-4 mb-4 flex justify-between items-center">
-            <h2 class="text-2xl font-bold text-gray-800">대시보드</h2>
-            <div class="flex items-center gap-4">
-                <div id="user-info" class="text-[#008264] font-semibold"></div>
-                <button id="add-new-event-btn" class="bg-[#008264] text-white px-4 py-2 rounded-md hover:bg-[#006d53] transition-colors shadow">
-                    새 일정 추가
-                </button>
-                <button id="logout-btn" class="bg-red-500 text-white px-4 py-2 rounded-md hover:bg-red-600 transition-colors shadow">
-                    로그아웃
-                </button>
-            </div>
-        </header>
-
-        <!-- 캘린더 -->
-        <div class="bg-white rounded-lg shadow-lg p-6 mb-8">
-            <h3 class="text-xl font-bold mb-4 text-[#008264]">캘린더</h3>
-            <div id="calendar-view" class="overflow-x-auto"></div>
-        </div>
-
-        <!-- 나의 일정 -->
-        <div class="bg-white rounded-lg shadow-lg p-6 mb-8">
-            <!-- 나의 일정 타이틀 -->
-<h3 class="text-xl font-bold mb-4 text-[#008264]">나의 일정</h3>
-
-            <div class="border-b border-gray-200 mb-4">
-                <nav id="schedule-tabs" class="flex space-x-1" aria-label="Tabs">
-                    <a href="#" data-period="today" class="schedule-tab text-gray-500 hover:text-gray-700 hover:bg-gray-100 px-3 py-2 rounded-md text-sm font-medium">오늘</a>
-                    <a href="#" data-period="this-week" class="schedule-tab bg-[#008264] text-white px-3 py-2 rounded-md text-sm font-medium">이번 주</a>
-                    <a href="#" data-period="next-week" class="schedule-tab text-gray-500 hover:text-gray-700 hover:bg-gray-100 px-3 py-2 rounded-md text-sm font-medium">다음 주</a>
-                    <a href="#" data-period="this-month" class="schedule-tab text-gray-500 hover:text-gray-700 hover:bg-gray-100 px-3 py-2 rounded-md text-sm font-medium">이번 달</a>
-                </nav>
-            </div>
-            <div id="schedule-list" class="mt-4 space-y-2"></div>
-        </div>
-
-        <!-- 대회 정보 -->
-        <div class="bg-white rounded-lg shadow-lg p-6 mb-8">
-            <!-- 대회 정보 타이틀 -->
-<h3 class="text-xl font-bold mb-4 text-[#008264]">대회 정보</h3>
-
-            <div class="border-b border-gray-200 mb-4">
-                <!-- 교내/교외 대회 탭 -->
-<nav id="contest-tabs" class="flex space-x-1" aria-label="Tabs">
-    <a href="#" data-type="school" class="contest-tab bg-[#008264] text-white px-3 py-2 rounded-md text-sm font-medium">교내대회</a>
-    <a href="#" data-type="outside" class="contest-tab text-gray-500 hover:text-gray-700 hover:bg-gray-100 px-3 py-2 rounded-md text-sm font-medium">교외대회</a>
-</nav>
-
-            </div>
-            <div id="contest-list" class="mt-4 space-y-4"></div>
-        </div>
-    </section>
-
-    <!-- body 태그 안에 추가 (맨 아래) -->
-<button id="ai-btn" class="fixed bottom-4 left-4 bg-white hover:bg-[#f0f9f7] text-[#008264] rounded-full p-4 shadow-lg transition-all duration-200 z-50 border-2 border-[#008264]">
-    <svg class="w-10 h-10" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-        <path d="M12 2C13.1046 2 14 2.89543 14 4C14 4.74028 13.5978 5.38663 13 5.73244V7H14C17.3137 7 20 9.68629 20 13V15C20 17.2091 18.2091 19 16 19H8C5.79086 19 4 17.2091 4 15V13C4 9.68629 6.68629 7 10 7H11V5.73244C10.4022 5.38663 10 4.74028 10 4C10 2.89543 10.8954 2 12 2Z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-        <path d="M9 11C8.44772 11 8 11.4477 8 12C8 12.5523 8.44772 13 9 13C9.55228 13 10 12.5523 10 12C10 11.4477 9.55228 11 9 11Z" fill="currentColor"/>
-        <path d="M15 11C14.4477 11 14 11.4477 14 12C14 12.5523 14.4477 13 15 13C15.5523 13 16 12.5523 16 12C16 11.4477 15.5523 11 15 11Z" fill="currentColor"/>
-        <path d="M9 15H15" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
-    </svg>
-</button>
-
-<!-- AI 프롬프트 모달 -->
-<div id="ai-modal" class="fixed inset-0 bg-black bg-opacity-50 hidden items-center justify-center z-50">
-    <div class="bg-white rounded-lg p-6 w-full max-w-2xl mx-4">
-        <div class="flex justify-between items-center mb-4">
-            <h3 class="text-xl font-semibold text-gray-900">AI 어시스턴트</h3>
-            <button id="close-modal" class="text-gray-500 hover:text-gray-700">
-                <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
-                </svg>
-            </button>
-        </div>
-        <div class="mb-4">
-            <input type="text" id="ai-prompt" class="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent" 
-                   placeholder="무엇을 도와드릴까요?">
-        </div>
-        <div id="ai-response" class="bg-gray-50 rounded-lg p-4 mb-4 min-h-[100px] max-h-[300px] overflow-y-auto hidden">
-            <!-- AI 응답이 여기에 표시됩니다 -->
-        </div>
-        <button id="send-prompt" class="bg-[#008264] text-white px-4 py-2 rounded-lg hover:bg-[#006d53] transition-colors">
-            전송
-        </button>
+<body>
+  <!-- Top Nav -->
+  <header class="site-header">
+    <div class="container">
+      <button class="icon-btn" aria-label="메뉴 열기"><span class="threeline">☰</span></button>
+      <a href="#" class="logo" aria-label="홈" id="reloaded">
+        <img src="./assets/image.png" alt="TMFD Logo"/>
+      </a>
+      <nav class="main-nav" aria-label="주 메뉴">
+        <a href="#" class="sub-nav">공유 일정</a>
+        <a href="#" class="sub-nav">개인 일정</a>
+        <a href="#" class="sub-nav">수행평가</a>
+        <a href="#" class="sub-nav">게시판</a>
+        <a href="./TimeAndFood.html" class="sub-nav">급식표 및 시간표</a>
+        <a href="./sit.html" class="sub-nav">야자 관리</a>
+        <a href="./about.html" class="sub-nav">도움말</a>
+      </nav>
+      <div class="user-actions">
+        <a class="small-link" href="#">Login</a>
+        <a class="small-link" href="#">Join</a>
+      </div>
     </div>
-</div>
+  </header>
 
-    <script>
-    document.addEventListener('DOMContentLoaded', function() {
-        // 인트로에서 아래로 이동 버튼
-        document.getElementById('scroll-down').addEventListener('click', function() {
-            document.getElementById('dashboard').scrollIntoView({ behavior: 'smooth' });
-        });
+  <!-- Title + subtitle -->
+  <section class="title-block">
+    <div class="container narrow">
+      <h1 id="typingTitle" ></h1>
+      <p class="subtitle">대신고 1-8반을 위한 시간 관리 웹입니다.</p>
+      <span class="divider" aria-hidden="true"></span>
+    </div>
+  </section>
 
-        // 새 일정 추가 버튼 (예시)
-        document.getElementById('add-new-event-btn').addEventListener('click', () => {
-            alert('새 일정 추가 기능은 추후 구현됩니다.');
-        });
+  <!-- Calendar Controls -->
+  <section class="calendar-wrap">
+    <div class="container narrow">
+      <div class="cal-toolbar">
+        <div class="cal-month">
+          <strong id="monthLabel">0000년 0월</strong>
+          <div class="cal-arrows">
+            <button id="prevBtn" class="icon-btn" aria-label="이전"><span>‹</span></button>
+            <button id="nextBtn" class="icon-btn" aria-label="다음"><span>›</span></button>
+          </div>
+        </div>
+        <div class="cal-views" role="tablist" aria-label="보기 전환">
+          <button id="btnMonth" class="view-btn active" data-view="month">월</button>
+          <button id="btnWeek" class="view-btn" data-view="week">주</button>
+          <!-- 일 버튼 제거됨 -->
+        </div>
+      </div>
 
-        // 캘린더: 이번 달 달력 표시
-        const calendarView = document.getElementById('calendar-view');
-        function renderCalendar() {
-            const today = new Date();
-            const year = today.getFullYear();
-            const month = today.getMonth();
-            const firstDay = new Date(year, month, 1).getDay();
-            const lastDate = new Date(year, month + 1, 0).getDate();
+      <!-- Calendar Grid -->
+      <div id="calendar" class="calendar" aria-label="달력">
+        <div class="cal-head">
+          <div>일</div><div>월</div><div>화</div><div>수</div><div>목</div><div>금</div><div>토</div>
+        </div>
+        <div id="calBody" class="cal-body"></div>
+      </div>
+    </div>
+  </section>
 
-            let html = '<table class="w-full text-center table-fixed">';
-            html += '<tr class="text-[#008264] font-semibold"><th>일</th><th>월</th><th>화</th><th>수</th><th>목</th><th>금</th><th>토</th></tr><tr>';
+  <script>
+/* ===== 상태 ===== */
+const monthLabel = document.getElementById('monthLabel');
+const calBody = document.getElementById('calBody');
+const prevBtn = document.getElementById('prevBtn');
+const nextBtn = document.getElementById('nextBtn');
+const calendarEl = document.getElementById('calendar');
+const btnMonth = document.getElementById('btnMonth');
+const btnWeek = document.getElementById('btnWeek');
 
-            // 빈칸
-            for (let i = 0; i < firstDay; i++) html += '<td></td>';
+const today = new Date(); today.setHours(0,0,0,0);
+let viewDate = new Date(today.getFullYear(), today.getMonth(), 1);
+let mode = 'month'; // 'month' | 'week'
 
-            // 날짜
-            for (let d = 1; d <= lastDate; d++) {
-                const date = new Date(year, month, d);
-                const isToday = date.toDateString() === today.toDateString();
-                html += `<td class="${isToday ? 'bg-[#e6f3f0] font-bold rounded' : ''}">${d}</td>`;
-                if ((firstDay + d) % 7 === 0) html += '</tr><tr>';
-            }
-            html += '</tr></table>';
-            calendarView.innerHTML = html;
-        }
-        renderCalendar();
+/* ===== 이벤트 예시 ===== */
+const EVENTS = {
+  "2020-07-08": ["SEWING 101"],
+  "2020-07-10": ["TAILORING 101"],
+  "2020-07-11": ["티셔츠 프린팅"],
+  "2020-07-15": ["SEWING 101"],
+  "2020-07-17": ["TAILORING 101"],
+};
 
-        // 일정 데이터 예시
-        const allSchedules = {
-            "2025-08-04": [{ title: "수학 숙제", desc: "문제집 3단원 풀기" }],
-            "2025-08-05": [{ title: "영어 단어 암기", desc: "단어 20개 외우기" }]
-        };
-        const sortedDates = Object.keys(allSchedules).sort();
-        const scheduleList = document.getElementById('schedule-list');
+const pad = n => String(n).padStart(2,'0');
+const toISO = d => `${d.getFullYear()}-${pad(d.getMonth()+1)}-${pad(d.getDate())}`;
 
-        function renderSchedule(period = 'this-week') {
-            scheduleList.innerHTML = '';
-            let filteredDates = [];
-            const today = new Date();
-            if (period === 'today') {
-                filteredDates = sortedDates.filter(date => new Date(date).toDateString() === today.toDateString());
-            } else if (period === 'this-week') {
-                const dayOfWeek = today.getDay();
-                const startOfWeek = new Date(today);
-                startOfWeek.setDate(today.getDate() - dayOfWeek);
-                const endOfWeek = new Date(startOfWeek);
-                endOfWeek.setDate(startOfWeek.getDate() + 6);
-                filteredDates = sortedDates.filter(date => {
-                    const d = new Date(date);
-                    return d >= startOfWeek && d <= endOfWeek;
-                });
-            } else if (period === 'next-week') {
-                const startOfNextWeek = new Date(today);
-                startOfNextWeek.setDate(today.getDate() - today.getDay() + 7);
-                const endOfNextWeek = new Date(startOfNextWeek);
-                endOfNextWeek.setDate(startOfNextWeek.getDate() + 6);
-                filteredDates = sortedDates.filter(date => {
-                    const d = new Date(date);
-                    return d >= startOfNextWeek && d <= endOfNextWeek;
-                });
-            } else if (period === 'this-month') {
-                filteredDates = sortedDates.filter(date => {
-                    const d = new Date(date);
-                    return d.getMonth() === today.getMonth() && d.getFullYear() === today.getFullYear();
-                });
-            }
-            if (filteredDates.length === 0) {
-                scheduleList.innerHTML = `<div class="schedule-item border-l-4 border-gray-300 pl-4 py-3"><p class="text-gray-500">선택한 기간에 일정이 없습니다.</p></div>`;
-                return;
-            }
-            filteredDates.forEach(date => {
-                allSchedules[date].forEach(item => {
-                    scheduleList.insertAdjacentHTML('beforeend', `
-                        <div class="schedule-item border-l-4 border-[#008264] pl-4 py-3">
-                            <p class="font-semibold">${item.title}</p>
-                            <p class="text-gray-600 text-sm">${item.desc}</p>
-                            <p class="text-xs text-gray-400">${date}</p>
-                        </div>
-                    `);
-                });
-            });
-        }
+function startOfMonthGrid(y, m) {
+  const first = new Date(y, m, 1);
+  return new Date(y, m, 1 - first.getDay()); // 해당 월 첫 주 일요일
+}
+function startOfWeek(d) {
+  const dd = new Date(d.getFullYear(), d.getMonth(), d.getDate());
+  return new Date(dd.setDate(dd.getDate() - dd.getDay())); // 일요일
+}
 
-        // 일정 탭 이벤트
-        const scheduleTabs = document.getElementById('schedule-tabs');
-        scheduleTabs.addEventListener('click', (e) => {
-            e.preventDefault();
-            const targetTab = e.target.closest('.schedule-tab');
-            if (!targetTab) return;
-            scheduleTabs.querySelectorAll('.schedule-tab').forEach(tab => {
-                tab.classList.remove('bg-[#008264]', 'text-white');
-                tab.classList.add('text-gray-500', 'hover:text-gray-700', 'hover:bg-gray-100');
-            });
-            targetTab.classList.add('bg-[#008264]', 'text-white');
-            targetTab.classList.remove('text-gray-500', 'hover:text-gray-700', 'hover:bg-gray-100');
-            renderSchedule(targetTab.dataset.period);
-        });
-        renderSchedule('this-week');
+/* ===== 렌더링 ===== */
+function setLabel() {
+  if (mode === 'month') {
+    monthLabel.textContent = `${viewDate.getFullYear()}년 ${viewDate.getMonth()+1}월`;
+  } else {
+    const start = startOfWeek(viewDate);
+    const end = new Date(start); end.setDate(end.getDate()+6);
+    const fmt = d => `${d.getFullYear()}년 ${d.getMonth()+1}월 ${d.getDate()}일`;
+    monthLabel.textContent = `${fmt(start)} ~ ${fmt(end)}`;
+  }
+}
 
-        // 대회 데이터 예시
-        const schoolContests = [
-            {
-                title: "교내 과학탐구대회",
-                img: "https://via.placeholder.com/80x80?text=대회1",
-                link: "#"
-            },
-            {
-                title: "교내 글쓰기 대회",
-                img: "https://via.placeholder.com/80x80?text=대회2",
-                link: "#"
-            }
-        ];
-        const outsideContests = [
-            {
-                title: "전국 영어 토론대회",
-                img: "https://via.placeholder.com/80x80?text=대회A",
-                link: "#"
-            },
-            {
-                title: "수학 창의력 경진대회",
-                img: "https://via.placeholder.com/80x80?text=대회B",
-                link: "#"
-            }
-        ];
-        const contestTabs = document.getElementById('contest-tabs');
-        const contestList = document.getElementById('contest-list');
-        function renderContestList(type = 'school') {
-            contestList.innerHTML = '';
-            const data = type === 'school' ? schoolContests : outsideContests;
-            if (data.length === 0) {
-                contestList.innerHTML = `<div class="text-gray-500">등록된 대회가 없습니다.</div>`;
-                return;
-            }
-            data.forEach(contest => {
-                contestList.insertAdjacentHTML('beforeend', `
-                    <div class="flex items-center gap-4">
-                        <img src="${contest.img}" alt="${contest.title}" class="w-20 h-20 rounded-md border">
-                        <div>
-                            <p class="font-semibold">${contest.title}</p>
-                            <a href="${contest.link}" target="_blank" class="text-[#008264] underline text-sm">자세히 보기</a>
-                        </div>
-                    </div>
-                `);
-            });
-        }
-        contestTabs.addEventListener('click', (e) => {
-            e.preventDefault();
-            const targetTab = e.target.closest('.contest-tab');
-            if (!targetTab) return;
-            contestTabs.querySelectorAll('.contest-tab').forEach(tab => {
-                tab.classList.remove('bg-[#008264]', 'text-white');
-                tab.classList.add('text-gray-500', 'hover:text-gray-700', 'hover:bg-gray-100');
-            });
-            targetTab.classList.add('bg-[#008264]', 'text-white');
-            targetTab.classList.remove('text-gray-500', 'hover:text-gray-700', 'hover:bg-gray-100');
-            renderContestList(targetTab.dataset.type);
-        });
-        renderContestList('school');
-
-        // AI 버튼 및 모달 관련
-    const aiBtn = document.getElementById('ai-btn');
-    const aiModal = document.getElementById('ai-modal');
-    const closeModal = document.getElementById('close-modal');
-    const sendPrompt = document.getElementById('send-prompt');
-    const aiPrompt = document.getElementById('ai-prompt');
-    const aiResponse = document.getElementById('ai-response');
-
-    aiBtn.addEventListener('click', () => {
-        aiModal.classList.remove('hidden');
-        aiModal.classList.add('flex');
-    });
-
-    closeModal.addEventListener('click', () => {
-        aiModal.classList.add('hidden');
-        aiModal.classList.remove('flex');
-    });
-
-    sendPrompt.addEventListener('click', () => {
-        const prompt = aiPrompt.value.trim();
-        if (prompt) {
-            aiResponse.classList.remove('hidden');
-            aiResponse.innerHTML = '<div class="animate-pulse">AI가 응답을 생성중입니다...</div>';
-            // 여기에 실제 AI API 호출 코드를 추가하세요
-        }
-    });
-
-    // 모달 외부 클릭 시 닫기
-    aiModal.addEventListener('click', (e) => {
-        if (e.target === aiModal) {
-            aiModal.classList.add('hidden');
-            aiModal.classList.remove('flex');
-        }
-    });
-
-document.getElementById('logout-btn').addEventListener('click', function() {
-    window.location.href = '/logout';
+const logo = document.getElementById('reloaded'); // id 그대로 써도 됨(함수 삭제 전제)
+logo.addEventListener('click', (e) => {
+  e.preventDefault();          // '#'로 맨 위 점프 방지
+  window.location.reload();    // 페이지 리로드
 });
-    });
-    </script>
+
+function render() {
+  setLabel();
+  calBody.innerHTML = '';
+  calendarEl.classList.toggle('is-week', mode === 'week');
+
+  if (mode === 'month') {
+    const y = viewDate.getFullYear();
+    const m = viewDate.getMonth();
+    let cursor = startOfMonthGrid(y, m);
+
+    for (let i=0;i<42;i++) {
+      const d = new Date(cursor);
+      const inMonth = (d.getMonth() === m);
+      calBody.appendChild(makeCell(d, !inMonth));
+      cursor.setDate(cursor.getDate()+1);
+    }
+  } else {
+    // 주간: viewDate가 포함된 주의 7일만
+    const start = startOfWeek(viewDate);
+    for (let i=0;i<7;i++) {
+      const d = new Date(start); d.setDate(start.getDate()+i);
+      calBody.appendChild(makeCell(d, false));
+    }
+  }
+}
+
+function makeCell(dateObj, muted) {
+  const cell = document.createElement('div');
+  cell.className = 'day' + (muted ? ' muted' : '');
+
+  if (dateObj.getTime() === today.getTime()) cell.classList.add('today');
+
+  const dateSpan = document.createElement('span');
+  dateSpan.className = 'date';
+  dateSpan.textContent = dateObj.getDate();
+  cell.appendChild(dateSpan);
+
+  const key = toISO(dateObj);
+  if (EVENTS[key] && EVENTS[key].length) {
+    cell.classList.add('has-dot');
+    const ev = document.createElement('div');
+    ev.className = 'event';
+    ev.textContent = EVENTS[key][0];
+    cell.appendChild(ev);
+  }
+  return cell;
+}
+/* 에니메이션 효과*/
+const text = "Time Management For Daeshin"; // 처음에 타이핑될 문구
+const shortText = "TMFD"; // 클릭 후 변환될 문구
+const el = document.getElementById("typingTitle");
+let i = 0;
+let typingDone = false;
+
+/* 1) 타자기 효과 */
+function typing(){
+  if(i < text.length){
+    el.textContent += text.charAt(i);
+    i++;
+    setTimeout(typing, 80);
+  } else {
+    typingDone = true; // 다 치고 나면 상태 저장
+  }
+}
+typing();
+
+// /* 2) 클릭 시 변환 */
+// el.addEventListener("click", () => {
+//   if (!typingDone) return; // 다 타이핑되기 전엔 클릭 막기
+
+//   el.classList.add("fade-out");
+//   setTimeout(() => {
+//     el.textContent = shortText; // TMFD로 교체
+//     el.classList.remove("fade-out");
+//     el.classList.add("fade-in");
+//   }, 500); // fade-out 끝난 후 교체
+// });
+
+/* ===== 네비게이션 ===== */
+prevBtn.addEventListener('click', () => {
+  if (mode === 'month') {
+    viewDate = new Date(viewDate.getFullYear(), viewDate.getMonth()-1, 1);
+  } else {
+    viewDate = new Date(viewDate.getFullYear(), viewDate.getMonth(), viewDate.getDate()-7);
+  }
+  render();
+});
+nextBtn.addEventListener('click', () => {
+  if (mode === 'month') {
+    viewDate = new Date(viewDate.getFullYear(), viewDate.getMonth()+1, 1);
+  } else {
+    viewDate = new Date(viewDate.getFullYear(), viewDate.getMonth(), viewDate.getDate()+7);
+  }
+  render();
+});
+
+/* ===== 보기 전환 ===== */
+function activate(view) {
+  mode = view;
+  btnMonth.classList.toggle('active', view==='month');
+  btnWeek.classList.toggle('active', view==='week');
+  render();
+}
+btnMonth.addEventListener('click', () => activate('month'));
+btnWeek.addEventListener('click', () => activate('week'));
+
+/* 최초 렌더 */
+render();
+  </script>
 </body>
 </html>
