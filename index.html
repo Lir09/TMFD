@@ -264,17 +264,17 @@ const el = document.getElementById("typingTitle");
 let i = 0;
 let typingDone = false;
 
-/* 1) 타자기 효과 */
-function typing(){
-  if(i < text.length){
-    el.textContent += text.charAt(i);
-    i++;
-    setTimeout(typing, 80);
-  } else {
-    typingDone = true; // 다 치고 나면 상태 저장
-  }
-}
-typing();
+// /* 1) 타자기 효과 */
+// function typing(){
+//   if(i < text.length){
+//     el.textContent += text.charAt(i);
+//     i++;
+//     setTimeout(typing, 80);
+//   } else {
+//     typingDone = true; // 다 치고 나면 상태 저장
+//   }
+// }
+// typing();
 
 // /* 2) 클릭 시 변환 */
 // el.addEventListener("click", () => {
