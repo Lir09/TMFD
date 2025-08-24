@@ -1,0 +1,127 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>수행평가 관리</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      margin: 0;
+      padding: 0;
+      background: #f9f9f9;
+    }
+    header {
+      display: flex;
+      justify-content: space-around;
+      align-items: center;
+      background: #222;
+      color: white;
+      padding: 10px 0;
+      position: sticky;
+      top: 0;
+    }
+    header button {
+      background: none;
+      border: none;
+      color: white;
+      font-size: 1.2em;
+      cursor: pointer;
+      padding: 5px 15px;
+      transition: background 0.3s;
+    }
+    header button.active, header button:hover {
+      background: #444;
+      border-radius: 5px;
+    }
+    main {
+      padding: 20px;
+    }
+    .task {
+      background: white;
+      padding: 15px;
+      margin-bottom: 15px;
+      border-radius: 8px;
+      box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+    }
+    .task h3 {
+      margin: 0;
+    }
+    .status {
+      margin-top: 8px;
+      font-size: 0.9em;
+      color: gray;
+    }
+  </style>
+</head>
+<body>
+  <header>
+    <button data-subject="korean">📘 국어</button>
+    <button data-subject="math">➗ 수학</button>
+    <button data-subject="english">✏️ 영어</button>
+    <button data-subject="social">🌍 사회</button>
+    <button data-subject="science">🔬 과학</button>
+    <button data-subject="history">🏛 한국사</button>
+    <button data-subject="it">💻 정보</button>
+    <button data-subject="lab">🔭 과탐실</button>
+  </header>
+  
+  <main id="task-list">
+    <p>과목을 선택하세요.</p>
+  </main>
+
+  <script>
+    const tasks = {
+      korean: [
+        { title: "현대시 분석 발표", deadline: "9/12", status: "제출완료 ✅" },
+        { title: "고전문학 감상문", deadline: "9/25", status: "진행 중 ⏳" }
+      ],
+      math: [
+        { title: "함수와 그래프 탐구 보고서", deadline: "9/15", status: "제출완료 ✅" },
+        { title: "통계 프로젝트", deadline: "9/28", status: "미제출 ⚠️" }
+      ],
+      english: [
+        { title: "영어 에세이 작성", deadline: "9/20", status: "진행 중 ⏳" }
+      ],
+      social: [
+        { title: "사회 이슈 발표", deadline: "9/18", status: "제출완료 ✅" }
+      ],
+      science: [
+        { title: "과학 독서", deadline: "8/26", status: "미제출 ⚠️" }
+      ],
+      history: [
+        { title: "조선시대 경제사 탐구", deadline: "9/25", status: "진행 중 ⏳" }
+      ],
+      it: [
+        { title: "파이썬 프로젝트 제출", deadline: "9/19", status: "제출완료 ✅" }
+      ],
+      lab: [
+        { title: "물리 실험 기록지", deadline: "9/17", status: "미제출 ⚠️" }
+      ]
+    };
+
+    const headerButtons = document.querySelectorAll("header button");
+    const taskList = document.getElementById("task-list");
+
+    headerButtons.forEach(btn => {
+      btn.addEventListener("click", () => {
+        headerButtons.forEach(b => b.classList.remove("active"));
+        btn.classList.add("active");
+        const subject = btn.getAttribute("data-subject");
+        renderTasks(subject);
+      });
+    });
+
+    function renderTasks(subject) {
+      taskList.innerHTML = "";
+      tasks[subject].forEach(task => {
+        const div = document.createElement("div");
+        div.className = "task";
+        div.innerHTML = `<h3>${task.title}</h3>
+                         <div class='status'>마감: ${task.deadline} | 상태: ${task.status}</div>`;
+        taskList.appendChild(div);
+      });
+    }
+  </script>
+</body>
+</html>
