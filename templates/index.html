@@ -7,94 +7,7 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&family=Noto+Sans+KR:wght@400;500;700&display=swap" rel="stylesheet">
-  <style>
-/* Reset & base */
-* { box-sizing: border-box; }
-html, body { height: 100%; }
-body { margin:0; font-family:'Inter','Noto Sans KR',system-ui,-apple-system,Segoe UI,Roboto,'Apple SD Gothic Neo',sans-serif; color:#151515; background:#fff; }
-
-/* Layout */
-.container { max-width:1120px; margin:0 auto; padding:0 20px; display:flex; align-items:center; gap:16px; }
-.container.narrow { max-width:920px; flex-direction:column; }
-
-/* Header */
-.site-header { border-bottom:1px solid #eaeaea; background:#fff; }
-.site-header .container { height:64px; justify-content:space-between; }
-.logo img { height:45px; display:block; }
-.main-nav { display:none; gap:22px; letter-spacing:.02em; }
-.main-nav a { text-decoration:none; color:#222; font-weight:600; font-size:14px; }
-.main-nav a.active { background:#111; color:#fff; padding:6px 10px; border-radius:3px; }
-.user-actions { display:flex; gap:14px; align-items:center; }
-.small-link { text-decoration:none; color:#666; font-size:13px; }
-
-/* Icons (간단) */
-.icon-btn { width:36px; height:36px; border:0; background:transparent; display:grid; place-items:center; cursor:pointer; }
-.i-globe { width:20px; height:20px; border:1.6px solid #222; border-radius:50%; position:relative; }
-.i-globe::before, .i-globe::after { content:''; position:absolute; background:#222; left:50%; transform:translateX(-50%); }
-.i-globe::before { top:2px; bottom:2px; width:1.6px; }
-.i-globe::after { top:50%; height:1.6px; width:70%; }
-
-/* Title */
-.title-block { padding:32px 0 12px; text-align:center; }
-.title-block h1 { margin:0 0 8px; font-weight:800; letter-spacing:.02em; font-size:36px; }
-.title-block .subtitle { margin:0; color:#666; font-size:13px; }
-.title-block .divider { width:40px; height:3px; background:#111; display:inline-block; margin-top:16px; border-radius:2px; }
-
-/* Toolbar */
-.calendar-wrap { padding:16px 0 56px; }
-.cal-toolbar { width:100%; display:flex; align-items:center; justify-content:space-between; margin:14px 0 10px; }
-.cal-month { display:flex; align-items:center; gap:12px; font-size:16px; }
-.cal-arrows { display:flex; gap:6px; }
-.cal-views { display:flex; gap:8px; }
-.view-btn { min-width:42px; height:34px; padding:0 10px; border:1px solid #ddd; background:#fff; border-radius:4px; cursor:pointer; font-weight:600; }
-.view-btn.active { background:#111; color:#fff; border-color:#111; }
-
-/* Calendar */
-.calendar { width:100%; border:1px solid #eee; border-radius:8px; overflow:hidden; }
-.cal-head { display:grid; grid-template-columns:repeat(7,1fr); background:#fafafa; border-bottom:1px solid #eee; }
-.cal-head>div { padding:10px 12px; font-weight:600; color:#666; font-size:13px; }
-.cal-body { display:grid; grid-template-columns:repeat(7,1fr); grid-auto-rows:110px; }
-.calendar.is-week .cal-body { grid-auto-rows:150px; } /* 주간은 1줄 크게 */
-.day { position:relative; border-right:1px solid #eee; border-bottom:1px solid #eee; padding:6px 8px; }
-.day:nth-child(7n) { border-right:0; }
-.day .date { font-size:12px; color:#444; }
-.day.muted .date { color:#bbb; }
-.day.today { outline:2px solid #111; outline-offset:-2px; border-radius:6px; }
-.day.today .date { background:#111; color:#fff; border-radius:999px; padding:1px 6px; }
-
-/* Event pill */
-.event { position:absolute; left:8px; right:8px; top:30px; background:#efefef; border-left:3px solid #cfcfcf; padding:6px 8px; border-radius:4px; font-size:12px; color:#333; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
-.day.has-dot .date::after { content:''; display:inline-block; width:14px; height:14px; background:#111; border-radius:50%; margin-left:6px; vertical-align:middle; }
-
-/* hover */
-.sub-nav:hover{ font-size: 15px; text-decoration: underline; text-decoration-thickness: 2px;}
-
-/* Burger 표시용 */
-.threeline { font-size:30px; }
-
-/* Responsive */
-@media (min-width:960px){ .main-nav{ display:flex; } }
-@media (max-width:640px){ .cal-body{ grid-auto-rows:88px; } .title-block h1{ font-size:28px; } }
-
-#typingTitle {
-  cursor: pointer;
-  font-weight: 800;
-  font-size: 36px;
-  display: inline-block;
-  transition: all 0.8s ease;
-}
-
-.fade-out {
-  opacity: 0;
-  transform: scale(0.9);
-  transition: all 0.5s ease;
-}
-.fade-in {
-  opacity: 1;
-  transform: scale(1);
-  transition: all 0.5s ease;
-}
-  </style>
+  <link rel="stylesheet" href="/static/css/index.css">
 </head>
 <body>
   <!-- Top Nav -->
@@ -102,15 +15,15 @@ body { margin:0; font-family:'Inter','Noto Sans KR',system-ui,-apple-system,Sego
     <div class="container">
       <button class="icon-btn" aria-label="메뉴 열기"><span class="threeline">☰</span></button>
       <a href="#" class="logo" aria-label="홈" id="reloaded">
-        <img src="./assets/image.png" alt="TMFD Logo"/>
+        <img src="/static/assets/image.png" alt="TMFD Logo"/>
       </a>
       <nav class="main-nav" aria-label="주 메뉴">
         <a href="#" class="sub-nav">공유 일정</a>
         <a href="#" class="sub-nav">개인 일정</a>
-        <a href="#" class="sub-nav">수행평가</a>
+        <a href="./assessment.html" class="sub-nav">수행평가</a>
         <a href="./TimeAndFood.html" class="sub-nav">급식표 및 시간표</a>
-        <a href="./sit.html" class="sub-nav">야자 관리</a>
         <a href="./study.html" class="sub-nav">학습자료실</a>
+        <a href="./sit.html" class="sub-nav">야자 관리</a>
         <a href="./about.html" class="sub-nav">도움말</a>
       </nav>
       <div class="user-actions">
@@ -123,7 +36,7 @@ body { margin:0; font-family:'Inter','Noto Sans KR',system-ui,-apple-system,Sego
   <!-- Title + subtitle -->
   <section class="title-block">
     <div class="container narrow">
-      <h1 id="typingTitle" ></h1>
+      <h1 id="typingTitle" >Time Management For Daeshin</h1>
       <p class="subtitle">대신고 1-8반을 위한 시간 관리 웹입니다.</p>
       <span class="divider" aria-hidden="true"></span>
     </div>
@@ -157,167 +70,6 @@ body { margin:0; font-family:'Inter','Noto Sans KR',system-ui,-apple-system,Sego
     </div>
   </section>
 
-  <script>
-/* ===== 상태 ===== */
-const monthLabel = document.getElementById('monthLabel');
-const calBody = document.getElementById('calBody');
-const prevBtn = document.getElementById('prevBtn');
-const nextBtn = document.getElementById('nextBtn');
-const calendarEl = document.getElementById('calendar');
-const btnMonth = document.getElementById('btnMonth');
-const btnWeek = document.getElementById('btnWeek');
-
-const today = new Date(); today.setHours(0,0,0,0);
-let viewDate = new Date(today.getFullYear(), today.getMonth(), 1);
-let mode = 'month'; // 'month' | 'week'
-
-/* ===== 이벤트 예시 ===== */
-const EVENTS = {
-  "2020-07-08": ["SEWING 101"],
-  "2020-07-10": ["TAILORING 101"],
-  "2020-07-11": ["티셔츠 프린팅"],
-  "2020-07-15": ["SEWING 101"],
-  "2020-07-17": ["TAILORING 101"],
-};
-
-const pad = n => String(n).padStart(2,'0');
-const toISO = d => `${d.getFullYear()}-${pad(d.getMonth()+1)}-${pad(d.getDate())}`;
-
-function startOfMonthGrid(y, m) {
-  const first = new Date(y, m, 1);
-  return new Date(y, m, 1 - first.getDay()); // 해당 월 첫 주 일요일
-}
-function startOfWeek(d) {
-  const dd = new Date(d.getFullYear(), d.getMonth(), d.getDate());
-  return new Date(dd.setDate(dd.getDate() - dd.getDay())); // 일요일
-}
-
-/* ===== 렌더링 ===== */
-function setLabel() {
-  if (mode === 'month') {
-    monthLabel.textContent = `${viewDate.getFullYear()}년 ${viewDate.getMonth()+1}월`;
-  } else {
-    const start = startOfWeek(viewDate);
-    const end = new Date(start); end.setDate(end.getDate()+6);
-    const fmt = d => `${d.getFullYear()}년 ${d.getMonth()+1}월 ${d.getDate()}일`;
-    monthLabel.textContent = `${fmt(start)} ~ ${fmt(end)}`;
-  }
-}
-
-const logo = document.getElementById('reloaded'); // id 그대로 써도 됨(함수 삭제 전제)
-logo.addEventListener('click', (e) => {
-  e.preventDefault();          // '#'로 맨 위 점프 방지
-  window.location.reload();    // 페이지 리로드
-});
-
-function render() {
-  setLabel();
-  calBody.innerHTML = '';
-  calendarEl.classList.toggle('is-week', mode === 'week');
-
-  if (mode === 'month') {
-    const y = viewDate.getFullYear();
-    const m = viewDate.getMonth();
-    let cursor = startOfMonthGrid(y, m);
-
-    for (let i=0;i<42;i++) {
-      const d = new Date(cursor);
-      const inMonth = (d.getMonth() === m);
-      calBody.appendChild(makeCell(d, !inMonth));
-      cursor.setDate(cursor.getDate()+1);
-    }
-  } else {
-    // 주간: viewDate가 포함된 주의 7일만
-    const start = startOfWeek(viewDate);
-    for (let i=0;i<7;i++) {
-      const d = new Date(start); d.setDate(start.getDate()+i);
-      calBody.appendChild(makeCell(d, false));
-    }
-  }
-}
-
-function makeCell(dateObj, muted) {
-  const cell = document.createElement('div');
-  cell.className = 'day' + (muted ? ' muted' : '');
-
-  if (dateObj.getTime() === today.getTime()) cell.classList.add('today');
-
-  const dateSpan = document.createElement('span');
-  dateSpan.className = 'date';
-  dateSpan.textContent = dateObj.getDate();
-  cell.appendChild(dateSpan);
-
-  const key = toISO(dateObj);
-  if (EVENTS[key] && EVENTS[key].length) {
-    cell.classList.add('has-dot');
-    const ev = document.createElement('div');
-    ev.className = 'event';
-    ev.textContent = EVENTS[key][0];
-    cell.appendChild(ev);
-  }
-  return cell;
-}
-/* 에니메이션 효과*/
-const text = "Time Management For Daeshin"; // 처음에 타이핑될 문구
-const shortText = "TMFD"; // 클릭 후 변환될 문구
-const el = document.getElementById("typingTitle");
-let i = 0;
-let typingDone = false;
-
-/* 1) 타자기 효과 */
-function typing(){
-  if(i < text.length){
-    el.textContent += text.charAt(i);
-    i++;
-    setTimeout(typing, 80);
-  } else {
-    typingDone = true; // 다 치고 나면 상태 저장
-  }
-}
-typing();
-
-// /* 2) 클릭 시 변환 */
-// el.addEventListener("click", () => {
-//   if (!typingDone) return; // 다 타이핑되기 전엔 클릭 막기
-
-//   el.classList.add("fade-out");
-//   setTimeout(() => {
-//     el.textContent = shortText; // TMFD로 교체
-//     el.classList.remove("fade-out");
-//     el.classList.add("fade-in");
-//   }, 500); // fade-out 끝난 후 교체
-// });
-
-/* ===== 네비게이션 ===== */
-prevBtn.addEventListener('click', () => {
-  if (mode === 'month') {
-    viewDate = new Date(viewDate.getFullYear(), viewDate.getMonth()-1, 1);
-  } else {
-    viewDate = new Date(viewDate.getFullYear(), viewDate.getMonth(), viewDate.getDate()-7);
-  }
-  render();
-});
-nextBtn.addEventListener('click', () => {
-  if (mode === 'month') {
-    viewDate = new Date(viewDate.getFullYear(), viewDate.getMonth()+1, 1);
-  } else {
-    viewDate = new Date(viewDate.getFullYear(), viewDate.getMonth(), viewDate.getDate()+7);
-  }
-  render();
-});
-
-/* ===== 보기 전환 ===== */
-function activate(view) {
-  mode = view;
-  btnMonth.classList.toggle('active', view==='month');
-  btnWeek.classList.toggle('active', view==='week');
-  render();
-}
-btnMonth.addEventListener('click', () => activate('month'));
-btnWeek.addEventListener('click', () => activate('week'));
-
-/* 최초 렌더 */
-render();
-  </script>
+  <script src="/static/js/index.js"></script>
 </body>
 </html>

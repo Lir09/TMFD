@@ -84,9 +84,60 @@
             .container { padding: 16px 4vw; }
             .subject-list { grid-template-columns: 1fr; gap: 18px; }
         }
+        /* Header */
+.site-header { border-bottom:1px solid #eaeaea; background:#fff; }
+.site-header .container { height:64px; justify-content:space-between; }
+.logo img { height:45px; display:block; }
+.main-nav { display:none; gap:22px; letter-spacing:.02em; }
+.main-nav a { text-decoration:none; color:#222; font-weight:600; font-size:14px; }
+.main-nav a.active { background:#111; color:#fff; padding:6px 10px; border-radius:3px; }
+.user-actions { display:flex; gap:14px; align-items:center; }
+.small-link { text-decoration:none; color:#666; font-size:13px; }
+
+/* Icons (간단) */
+.icon-btn { width:36px; height:36px; border:0; background:transparent; display:grid; place-items:center; cursor:pointer; }
+.i-globe { width:20px; height:20px; border:1.6px solid #222; border-radius:50%; position:relative; }
+.i-globe::before, .i-globe::after { content:''; position:absolute; background:#222; left:50%; transform:translateX(-50%); }
+.i-globe::before { top:2px; bottom:2px; width:1.6px; }
+.i-globe::after { top:50%; height:1.6px; width:70%; }
+
+.title-block { padding:32px 0 12px; text-align:center; }
+.title-block h1 { margin:0 0 8px; font-weight:800; letter-spacing:.02em; font-size:36px; }
+.title-block .subtitle { margin:0; color:#666; font-size:13px; }
+.title-block .divider { width:40px; height:3px; background:#111; display:inline-block; margin-top:16px; border-radius:2px; }
+
+/* Toolbar */
+.calendar-wrap { padding:16px 0 56px; }
+.cal-toolbar { width:100%; display:flex; align-items:center; justify-content:space-between; margin:14px 0 10px; }
+.cal-month { display:flex; align-items:center; gap:12px; font-size:16px; }
+.cal-arrows { display:flex; gap:6px; }
+.cal-views { display:flex; gap:8px; }
+.view-btn { min-width:42px; height:34px; padding:0 10px; border:1px solid #ddd; background:#fff; border-radius:4px; cursor:pointer; font-weight:600; }
+.view-btn.active { background:#111; color:#fff; border-color:#111; }
     </style>
 </head>
 <body>
+      <header class="site-header">
+    <div class="container">
+      <button class="icon-btn" aria-label="메뉴 열기"><span class="threeline">☰</span></button>
+      <a href="#" class="logo" aria-label="홈" id="reloaded">
+        <img src="/static/assets/image.png" alt="TMFD Logo"/>
+      </a>
+      <nav class="main-nav" aria-label="주 메뉴">
+        <a href="#" class="sub-nav">공유 일정</a>
+        <a href="#" class="sub-nav">개인 일정</a>
+        <a href="./assessment.html" class="sub-nav">수행평가</a>
+        <a href="./TimeAndFood.html" class="sub-nav">급식표 및 시간표</a>
+        <a href="./study.html" class="sub-nav">학습자료실</a>
+        <a href="./sit.html" class="sub-nav">야자 관리</a>
+        <a href="./about.html" class="sub-nav">도움말</a>
+      </nav>
+      <div class="user-actions">
+        <a class="small-link" href="#">Login</a>
+        <a class="small-link" href="#">Join</a>
+      </div>
+    </div>
+  </header>
     <div class="container">
         <div style="display: flex; justify-content: space-between; align-items: center;">
             <h1>학습자료실</h1>

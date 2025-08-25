@@ -14,8 +14,8 @@
     *{box-sizing:border-box}
     body{margin:0;font-family:'Noto Sans KR','Inter',system-ui,-apple-system,Segoe UI,Roboto,sans-serif;color:#111;background:#fff}
     .page{max-width:1000px;margin:24px auto 48px;padding:0 16px;border:2px solid #111;border-radius:4px}
-    .head{text-align:center;padding-top:8px}
-    .slogan{margin:16px 0 6px;font-weight:700;font-size:32px;color:var(--title)}
+    .head{text-align:center;padding-top:0px;}
+    .slogan{margin:0px;font-weight:700;font-size:32px;color:var(--title)}
     .klass{font-size:32px;font-weight:800;margin:0 0 10px}
     .desk-teacher{display:inline-block;padding:10px 40px;border:2px solid #888;border-radius:4px;margin:6px auto 14px;font-weight:700;background:#fff}
     .layout{display:grid;grid-template-columns:1fr 100px;gap:20px;align-items:start;padding:0 24px 24px}
@@ -55,10 +55,34 @@
 </head>
 <body>
   <div class="page">
-    <div class="head">
-      <a href=./index.html class="slogan">불꽃 열정 포기하지 말자!!</a>
-      <h1 class="klass">1학년 8반</h1>
-      <div class="desk-teacher">교&nbsp;탁</div>
+    <div style="display:flex;justify-content:space-between;align-items:center; margin-bottom:10px;">
+      <!-- 중앙: 헤드 -->
+<div class="head" style="flex:1;display:flex;flex-direction:column;align-items:center;">
+  <!-- 시계 -->
+  <div style="display:flex;flex-direction:column;align-items:center;min-width:140px;margin-bottom:12px;">
+    <div style="font-size:20px;font-weight:700;color:#222;margin-bottom:4px;">현재 시각</div>
+    <div id="current-time"
+         style="
+           font-size:28px;
+           font-weight:800;
+           letter-spacing:2px;
+           color:#111;
+           background:#f5f5f5;
+           border:2.5px solid #222;
+           border-radius:10px;
+           padding:8px 24px;
+           box-shadow:0 2px 8px #0001;
+           text-align:center;
+         ">
+    </div>
+  </div>
+
+  <!-- 슬로건 / 반 이름 / 교탁 -->
+  <a href="./index.html" class="slogan">불꽃 열정 포기하지 말자!!</a>
+  <h1 class="klass" style="margin:0;">1학년 8반</h1>
+  <div class="desk-teacher" style="margin-top:8px;">교&nbsp;탁</div>
+</div>
+
     </div>
 
     <div class="layout">
@@ -297,6 +321,7 @@
               <div class="cip-result"></div>
             </div>
             <div class="cell">
+              <div class="reason"></div>
               <button class="name">황동규</button>
               <div class="id">10835</div>
             </div>
@@ -342,17 +367,18 @@
     <div class="modal-content">
       <h2>사유 입력 (최대 8자)</h2>
       <input type="text" id="reasonInput" maxlength="8" placeholder="사유를 입력하세요"/>
-      <div class="cip-group">
-        <label class="cip-row">
-          <input type="checkbox" class="cip" value="1차"><span>1차</span>
-        </label>
-        <label class="cip-row">
-          <input type="checkbox" class="cip" value="2차"><span>2차</span>
-        </label>
-        <label class="cip-row">
-          <input type="checkbox" class="cip" value="3차"><span>3차</span>
-        </label>
-      </div>
+      <!-- 1,2,3차 체크박스 라벨에 시간 추가 -->
+<div class="cip-group">
+  <label class="cip-row">
+    <input type="checkbox" class="cip" value="1차"><span>1차 (16:50~17:40)</span>
+  </label>
+  <label class="cip-row">
+    <input type="checkbox" class="cip" value="2차"><span>2차 (18:40~20:00)</span>
+  </label>
+  <label class="cip-row">
+    <input type="checkbox" class="cip" value="3차"><span>3차 (20:10~21:00)</span>
+  </label>
+</div>
       <div style="text-align:center;margin-top:10px">
         <button class="save-btn">저장</button>
       </div>
@@ -378,7 +404,24 @@ function seatKey(cell){
   return `seat:${id || name}`;
 }
 
-// 셀에 상태 적용
+// 각 차수의 시작 시각(24시간제)
+const ROUND_START = {
+  "1차": "16:50",
+  "2차": "18:40",
+  "3차": "20:10"
+};
+
+// 시각 비교 함수 
+function isFuture(timeStr) {
+  // const now = new Date();
+  const now = new Date();
+  const [h, m] = timeStr.split(':').map(Number);
+  const target = new Date();
+  target.setHours(h, m, 0, 0);
+  return now < target;
+}
+
+// 셀에 상태 적용 (색상 로직 추가)
 function applyStateToCell(cell, state){
   const reasonEl = cell.querySelector('.reason');
   const nameBtn  = cell.querySelector('.name');
@@ -392,8 +435,31 @@ function applyStateToCell(cell, state){
 
   if (reasonEl) reasonEl.textContent = state.reason || '';
   if (nameBtn)  nameBtn.classList.toggle('selected', !!state.selected);
-  cell.style.background = state.selected ? '#ffe8e8' : '#fff';
   cipEl.textContent = (state.rounds || []).join(', ');
+
+  // 색상 결정
+  if (state.selected && state.rounds && state.rounds.length > 0) {
+    // 가장 빠른 차수의 시작 시각 기준
+    const firstRound = state.rounds[0];
+    const startTime = ROUND_START[firstRound];
+    if (startTime) {
+      if (isFuture(startTime)) {
+        // 노란색 (뺄 예정)
+        cell.style.background = '#ffe066';
+        nameBtn.style.color = '#c62828';
+      } else {
+        // 빨간색 (이미 뺌)
+        cell.style.background = '#ff5252';
+        nameBtn.style.color = '#fff';
+      }
+    } else {
+      cell.style.background = '#fff';
+      nameBtn.style.color = 'var(--green)';
+    }
+  } else {
+    cell.style.background = '#fff';
+    if (nameBtn) nameBtn.style.color = 'var(--green)';
+  }
 }
 
 // 전체 복원
@@ -497,6 +563,17 @@ document.addEventListener('DOMContentLoaded', () => {
       });
     });
   }
+
+  // 현재 시각 표시
+  function updateCurrentTime() {
+  const now = new Date();
+  const hh = String(now.getHours()).padStart(2, '0');
+  const mm = String(now.getMinutes()).padStart(2, '0');
+  const ss = String(now.getSeconds()).padStart(2, '0');
+  document.getElementById('current-time').textContent = `${hh}:${mm}:${ss}`;
+}
+setInterval(updateCurrentTime, 1000);
+updateCurrentTime();
 });
 </script>
 </body>
