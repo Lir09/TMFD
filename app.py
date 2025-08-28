@@ -197,7 +197,8 @@ def login():
         return render_template('login.html', error="이메일 또는 비밀번호가 올바르지 않습니다.")
     return render_template('login.html')
 
-@app.route('/logout')
+# 로그아웃
+@app.route('/logout', methods=['POST'])
 def logout():
     session.clear()
     return redirect(url_for('login'))

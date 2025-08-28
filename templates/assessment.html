@@ -48,7 +48,7 @@
   .tab .dot{width:8px;height:8px;border-radius:50%}
   .dot.kor{background:#8bd3ff}.dot.math{background:#ff9f7c}.dot.eng{background:#ffd166}
   .dot.soc{background:#7ee787}.dot.sci{background:#ff6b6b}.dot.his{background:#c792ea}
-  .dot.inf{background:#7c9cff}.dot.lab{background:#61dafb}
+  .dot.inf{background:#7c9cff}.dot.lab{background:#61dafb}.dot.all{background:#9ec1ff}
 
   /* Main card */
   .card{
@@ -65,30 +65,53 @@
   .table{width:100%;border-collapse:separate;border-spacing:0 10px;padding:12px}
   .table thead th{font-size:12px;color:var(--muted);text-align:left;padding:0 10px}
   .row{
-    display:grid; grid-template-columns:28px 110px 1fr 88px 112px 96px 104px 80px 76px;
-    gap:10px; align-items:center; background:var(--card); border:1px solid #e5e7eb;
-    border-radius:12px; padding:12px; margin-top:10px
-  }
-  .cell{white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-  .pill{
-    display:inline-flex;align-items:center;gap:6px;padding:6px 10px;border-radius:999px;background:#f4f6fa;border:1px solid #e5e7eb;font-size:12px
-  }
-  .status{font-weight:700}
-  .status.p0{color:#aab4c4}
-  .status.p1{color:#5b82d8}
-  .status.p2{color:#3bd671}
-  .status.p3{color:#c792ea}
-  .status.p4{color:#151515}
-  .due{font-weight:700}
-  .due.red{color:var(--danger)} .due.orange{color:var(--warn)} .due.gray{color:var(--muted)}
-  .progress{height:8px;background:#e5e7eb;border-radius:999px;overflow:hidden}
-  .progress>i{display:block;height:100%;background:linear-gradient(90deg,#5b82d8,#61dafb)}
-  .btn{
-    background:#f4f6fa;border:1px solid #d1d5db;color:#222;padding:8px 12px;border-radius:10px;cursor:pointer
-  }
-  .btn.primary{background:#5b82d8;border-color:#5b82d8;color:#fff;}
-  .btn.ghost{background:#fff;border-color:#e5e7eb}
-  .badge{font-size:12px;padding:6px 10px;border-radius:999px;border:1px solid #e5e7eb;background:#f4f6fa;color:#333}
+  display:grid;
+  grid-template-columns: 28px 70px 1.8fr 70px 1.2fr 1fr; /* 칸 비율 조정 */
+  gap:8px;
+  align-items:center;
+  background:var(--card);
+  border:1px solid #e5e7eb;
+  border-radius:10px;
+  padding:8px 10px;
+  margin-top:8px;
+  min-height:unset;
+}
+.cell {
+  white-space:nowrap;
+  overflow:hidden;
+  text-overflow:ellipsis;
+  font-size: 15px;
+  line-height: 1.4;
+}
+.cell.title {
+  white-space:normal;
+  font-weight:700;
+  font-size:15px;
+  line-height:1.4;
+  word-break:keep-all;
+  padding-right:2px;
+}
+.cell.due {
+  white-space:normal;
+  font-weight:700;
+  font-size:15px;
+  text-align:center;
+}
+.cell.remain {
+  white-space:normal;
+  font-weight:700;
+  color:#222;
+  font-size:15px;
+  text-align:center;
+}
+.pill, .chip, .badge {
+  font-size:13px;
+  padding:4px 10px;
+  border-radius:999px;
+}
+.pill { background:#f4f6fa; border:1px solid #e5e7eb;}
+.chip { background:#f4f6fa; border:1px solid #e5e7eb;}
+.badge { background:#e9f0ff; color:#222; border:1px solid #bcd;}
 
   /* Right panel */
   .side{display:flex;flex-direction:column;gap:12px}
@@ -116,7 +139,10 @@
   <div class="wrap">
     <header>
       <div>
-        <div class="title" style="cursor:pointer;" onclick="window.location.href='index.html'">수행평가 관리</div>
+        <a href="/"
+          style="text-decoration:none;color:inherit;cursor:pointer;">
+          <div class="title">수행평가 관리</div>
+        </a>
         <div class="sub">상단 과목 탭 선택 → 아래에서 과제 현황 관리</div>
       </div>
       <div class="sub" id="today"></div>
@@ -124,22 +150,24 @@
 
     <!-- Subject Tabs -->
     <div class="tabs" id="tabs">
-      <button class="tab active" data-subj="국어"><span class="dot kor"></span>국어</button>
-      <button class="tab" data-subj="수학"><span class="dot math"></span>수학</button>
-      <button class="tab" data-subj="영어"><span class="dot eng"></span>영어</button>
-      <button class="tab" data-subj="사회"><span class="dot soc"></span>사회</button>
-      <button class="tab" data-subj="과학"><span class="dot sci"></span>과학</button>
-      <button class="tab" data-subj="한국사"><span class="dot his"></span>한국사</button>
-      <button class="tab" data-subj="정보"><span class="dot inf"></span>정보</button>
-      <button class="tab" data-subj="과탐실"><span class="dot lab"></span>과탐실</button>
+      <button class="tab active" data-subj="ALL"><span class="dot all"></span>📚 모든과목</button>
+      <button class="tab" data-subj="국어"><span class="dot kor"></span>📘 국어</button>
+      <button class="tab" data-subj="수학"><span class="dot math"></span>➗ 수학</button>
+      <button class="tab" data-subj="영어"><span class="dot eng"></span>✏️ 영어</button>
+      <button class="tab" data-subj="사회"><span class="dot soc"></span>🌍 사회</button>
+      <button class="tab" data-subj="과학"><span class="dot sci"></span>🔬 과학</button>
+      <button class="tab" data-subj="한국사"><span class="dot his"></span>🏛 한국사</button>
+      <button class="tab" data-subj="정보"><span class="dot inf"></span>💻 정보</button>
+      <button class="tab" data-subj="과탐실"><span class="dot lab"></span>🔭 과탐실</button>
       <span class="spacer"></span>
+      <span class="sub">미술 제외</span>
     </div>
 
     <div class="layout">
       <!-- Main board -->
       <div class="card">
         <div class="toolbar">
-          <input id="q" placeholder="과제명/키워드 검색" />
+          <input id="q" placeholder="과제명/키워드 검색 (전과목 가능)" />
           <select id="status">
             <option value="">상태 전체</option>
             <option>미제출</option><option>진행중</option><option>제출</option><option>채점중</option><option>완료</option>
@@ -153,7 +181,9 @@
         </div>
 
         <div id="table" style="padding-bottom:10px">
-          <div style="padding:8px 12px;color:var(--muted);font-size:12px">체크 → 일괄 작업(곧 추가). 행 클릭 → 상세 드로어.</div>
+          <div style="padding:8px 12px;color:var(--muted);font-size:12px">
+            체크 → 일괄 작업(곧 추가). 행 클릭 → 상세 드로어. ‘모든과목’ 탭에서 통합 검색/정렬 가능.
+          </div>
           <div class="row muted" aria-hidden="true" style="pointer-events:none;">
             <div class="cell">선택</div><div class="cell">과목</div><div class="cell">과제명</div>
             <div class="cell">유형</div><div class="cell">마감</div><div class="cell">남은시간</div>
@@ -210,58 +240,65 @@
   </div>
 
 <script>
-/* ---------- demo data ---------- */
-const data = [
- {id:'a1',subject:'국어', title:'현대시 이미지 분석 발표', type:'발표', dueAt:addDays(0,18), status:'진행중', progress:60, checklist:['작품선정','구조분석','발표자료 작성','리허설'], done:[1,1,1,0], score:null},
- {id:'a2',subject:'수학', title:'함수 모델링 프로젝트', type:'보고서', dueAt:addDays(1,23), status:'미제출', progress:20, checklist:['데이터 수집','모델 적합','오차분석','보고서'], done:[1,0,0,0]},
- {id:'a3',subject:'영어', title:'뉴스 스크립트 요약', type:'보고서', dueAt:addDays(3,17), status:'제출', progress:100, checklist:['요약','교정','제출'], done:[1,1,1], score:92},
- {id:'a4',subject:'사회', title:'지방소멸 리서치 인포그래픽', type:'발표', dueAt:addDays(2,12), status:'진행중', progress:40, checklist:['자료조사','시각화','발표문'], done:[1,0,0]},
- {id:'a5',subject:'과학', title:'엔자임 반응속도 실험 보고', type:'실험', dueAt:addDays(-1,16), status:'미제출', progress:0, checklist:['실험','그래프','논의','제출'], done:[1,0,0,0]},
- {id:'a6',subject:'한국사', title:'근현대사 사건 비교 에세이', type:'보고서', dueAt:addDays(5,18), status:'채점중', progress:100, checklist:['초안','피드백','최종'], done:[1,1,1]},
- {id:'a7',subject:'정보', title:'파이썬 자료구조 실습 과제', type:'코딩', dueAt:addDays(0,23), status:'진행중', progress:50, checklist:['문제풀이','테스트','리포트'], done:[1,0,0]},
- {id:'a8',subject:'과탐실', title:'pH 측정 및 오차 분석', type:'실험', dueAt:addDays(0,20), status:'진행중', progress:30, checklist:['실험','정리','보고'], done:[1,0,0]},
+/* ===================== Demo Data ===================== */
+const DATA = [
+ {id:'a1',subject:'국어',   title:'현대시 이미지 분석 발표',  type:'발표',  dueAt:addDays(0,18),  status:'진행중', progress:60, checklist:['작품선정','구조분석','발표자료 작성','리허설'], done:[1,1,1,0], score:null},
+ {id:'a2',subject:'수학',   title:'함수 모델링 프로젝트',      type:'보고서',dueAt:addDays(1,23),  status:'미제출',progress:20, checklist:['데이터 수집','모델 적합','오차분석','보고서'],   done:[1,0,0,0]},
+ {id:'a3',subject:'영어',   title:'뉴스 스크립트 요약',        type:'보고서',dueAt:addDays(3,17),  status:'제출',  progress:100,checklist:['요약','교정','제출'],                      done:[1,1,1], score:92},
+ {id:'a4',subject:'사회',   title:'지방소멸 리서치 인포그래픽', type:'발표',  dueAt:addDays(2,12),  status:'진행중',progress:40, checklist:['자료조사','시각화','발표문'],            done:[1,0,0]},
+ {id:'a5',subject:'과학',   title:'엔자임 반응속도 실험 보고',  type:'실험',  dueAt:addDays(-1,16), status:'미제출',progress:0,  checklist:['실험','그래프','논의','제출'],           done:[1,0,0,0]},
+ {id:'a6',subject:'한국사', title:'근현대사 사건 비교 에세이',  type:'보고서',dueAt:addDays(5,18),  status:'채점중',progress:100,checklist:['초안','피드백','최종'],                done:[1,1,1]},
+ {id:'a7',subject:'정보',   title:'파이썬 자료구조 실습 과제',  type:'코딩',  dueAt:addDays(0,23),  status:'진행중',progress:50, checklist:['문제풀이','테스트','리포트'],           done:[1,0,0]},
+ {id:'a8',subject:'과탐실', title:'pH 측정 및 오차 분석',       type:'실험',  dueAt:addDays(0,20),  status:'진행중',progress:30, checklist:['실험','정리','보고'],                  done:[1,0,0]},
 ];
-/* ---------- utils ---------- */
+
+/* ===================== State & Utils ===================== */
+const State = { current:'ALL', q:'', st:'', sort:'due' }; // ALL = 전과목
+
 function addDays(d,h=9){const x=new Date();x.setHours(9,0,0,0);x.setDate(x.getDate()+d);x.setHours(h);return x}
 function fmtDate(dt){return dt.toLocaleString('ko-KR',{month:'2-digit',day:'2-digit',hour:'2-digit',minute:'2-digit'})}
 function hoursLeft(dt){return (dt - new Date())/36e5}
-function dueClass(dt){
-  const h=hoursLeft(dt);
-  if(h<0) return 'red';
-  if(h<=48) return 'orange';
-  return 'gray';
+function dueClass(dt){const h=hoursLeft(dt); if(h<0) return 'red'; if(h<=48) return 'orange'; return 'gray';}
+function bySort(a,b,key){
+  if(key==='due') return a.dueAt-b.dueAt;
+  if(key==='remaining') return hoursLeft(a.dueAt)-hoursLeft(b.dueAt);
+  if(key==='progress') return b.progress-a.progress;
+  return 0;
 }
-/* ---------- state ---------- */
-let current='국어';
-let q=''; let st=''; let sort='due';
-/* ---------- DOM refs ---------- */
+
+/* ===================== DOM Refs ===================== */
 const rowsEl = document.getElementById('rows');
 const tabsEl = document.getElementById('tabs');
 const todayEl = document.getElementById('today');
 const qEl = document.getElementById('q');
 const stEl = document.getElementById('status');
 const sortEl = document.getElementById('sort');
-document.getElementById('clear').onclick=()=>{qEl.value='';stEl.value='';sortEl.value='due';q='';st='';sort='due';render()}
-/* ---------- header today ---------- */
+document.getElementById('clear').onclick=()=>{qEl.value='';stEl.value='';sortEl.value='due';State.q='';State.st='';State.sort='due';render()}
+
+/* Header: now */
 todayEl.textContent = new Date().toLocaleString('ko-KR',{year:'numeric',month:'2-digit',day:'2-digit',weekday:'short',hour:'2-digit',minute:'2-digit'});
-/* ---------- tabs ---------- */
+
+/* Tabs */
 tabsEl.addEventListener('click',e=>{
   const b=e.target.closest('.tab'); if(!b) return;
   document.querySelectorAll('.tab').forEach(t=>t.classList.remove('active'));
-  b.classList.add('active'); current=b.dataset.subj; render();
+  b.classList.add('active'); State.current=b.dataset.subj; render();
 });
-/* ---------- filters ---------- */
-qEl.oninput = e=>{q=e.target.value.trim(); render();}
-stEl.onchange = e=>{st=e.target.value; render();}
-sortEl.onchange = e=>{sort=e.target.value; render();}
-/* ---------- right lists ---------- */
-const fillSide = ()=>{
+
+/* Filters */
+qEl.oninput = e=>{State.q=e.target.value.trim(); render();};
+stEl.onchange = e=>{State.st=e.target.value; render();};
+sortEl.onchange = e=>{State.sort=e.target.value; render();};
+
+/* Right buckets (always all data) */
+(function fillSide(){
   const tList=document.getElementById('todayList');
   const sList=document.getElementById('soonList');
   const lList=document.getElementById('lateList');
   [tList,sList,lList].forEach(n=>n.innerHTML='');
 
-  data.forEach(x=>{
+  const todayStr = new Date().toDateString();
+  DATA.forEach(x=>{
     const h=hoursLeft(x.dueAt);
     const item = (cls)=>`
       <div class="task ${cls}">
@@ -275,51 +312,43 @@ const fillSide = ()=>{
         <button class="btn" onclick="openDrawer('${x.id}')">상세</button>
       </div>`;
     if(h<0) lList.insertAdjacentHTML('beforeend',item('late'));
-    else if(h<=48 && x.dueAt.toDateString()!==new Date().toDateString()) sList.insertAdjacentHTML('beforeend',item('warn'));
-    else if(x.dueAt.toDateString()===new Date().toDateString()) tList.insertAdjacentHTML('beforeend',item(''));
+    else if(x.dueAt.toDateString()===todayStr) tList.insertAdjacentHTML('beforeend',item(''));
+    else if(h<=48) sList.insertAdjacentHTML('beforeend',item('warn'));
   });
-};
-/* ---------- main table render ---------- */
+})();
+
+/* Main render */
 function render(){
-  const list = data
-    .filter(x=>x.subject===current)
-    .filter(x=>!q || (x.title+x.type).includes(q))
-    .filter(x=>!st || x.status===st)
-    .sort((a,b)=>{
-      if(sort==='due') return a.dueAt-b.dueAt;
-      if(sort==='remaining') return hoursLeft(a.dueAt)-hoursLeft(b.dueAt);
-      if(sort==='progress') return b.progress-a.progress;
-      return 0;
-    });
+  const list = DATA
+    .filter(x=> State.current==='ALL' || x.subject===State.current)
+    .filter(x=> !State.q || (x.title + x.type + x.subject).toLowerCase().includes(State.q.toLowerCase()))
+    .filter(x=> !State.st || x.status===State.st)
+    .sort((a,b)=>bySort(a,b,State.sort));
 
   rowsEl.innerHTML='';
+  const stMap={ '미제출':'p0','진행중':'p1','제출':'p2','채점중':'p3','완료':'p4' };
+
   list.forEach(x=>{
     const dueCls = dueClass(x.dueAt);
     const remain = hoursLeft(x.dueAt);
     const remainTxt = remain<0 ? `지각 ${Math.abs(remain).toFixed(1)}h` : `${remain.toFixed(1)}h`;
-    const stMap={ '미제출':'p0','진행중':'p1','제출':'p2','채점중':'p3','완료':'p4' };
     rowsEl.insertAdjacentHTML('beforeend', `
       <div class="row" role="button" onclick="openDrawer('${x.id}')">
-        <div class="cell"><input type="checkbox" aria-label="select"/></div>
+        <div class="cell"><input type="checkbox" aria-label="select" onclick="event.stopPropagation()"/></div>
         <div class="cell"><span class="pill">${x.subject}</span></div>
-        <div class="cell" title="${x.title}">${x.title}</div>
+        <div class="cell title" title="${x.title}">${x.title}</div>
         <div class="cell"><span class="chip">${x.type}</span></div>
         <div class="cell due ${dueCls}">${fmtDate(x.dueAt)}</div>
-        <div class="cell"><span class="badge">${remainTxt}</span></div>
-        <div class="cell status ${stMap[x.status]}">${x.status}</div>
-        <div class="cell">
-          <div class="progress"><i style="width:${x.progress}%"></i></div>
-        </div>
-        <div class="cell">${x.score ?? '-'}</div>
+        <div class="cell remain"><span class="badge">${remainTxt}</span></div>
       </div>
     `);
   });
 }
-fillSide(); render();
+render();
 
-/* ---------- drawer ---------- */
+/* Drawer */
 function openDrawer(id){
-  const x = data.find(v=>v.id===id); if(!x) return;
+  const x = DATA.find(v=>v.id===id); if(!x) return;
   document.getElementById('dwTitle').textContent = x.title;
   document.getElementById('dwSubj').textContent = x.subject;
   document.getElementById('dwType').textContent = x.type;

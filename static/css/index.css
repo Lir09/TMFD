@@ -84,3 +84,21 @@ body { margin:0; font-family:'Inter','Noto Sans KR',system-ui,-apple-system,Sego
   transform: scale(1);
   transition: all 0.5s ease;
 }
+
+.logout-btn {
+  margin-left: 12px;
+  background: #fff;
+  color: #222;
+  border: 1px solid #bbb;
+  border-radius: 7px;
+  padding: 7px 18px;
+  font-size: 13px;
+  font-weight: 700;
+  cursor: pointer;
+  transition: background 0.15s, color 0.15s, border 0.15s;
+}
+.logout-btn:hover {
+  background: #111;
+  color: #fff;
+  border-color: #111;
+}
