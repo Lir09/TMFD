@@ -251,7 +251,7 @@ def api_user():
 @app.route('/admin')
 @login_required
 def admin():
-    return "관리자 페이지(임시)."
+    return render_template('admin.html')
 
 if __name__ == '__main__':
     # 프로덕션에서는 debug=False 권장
