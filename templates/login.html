@@ -1,0 +1,59 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>로그인</title>
+<link rel="stylesheet" href="/static/css/login.css">
+</head>
+<body>
+  <img src="/static/image/logo-removebg-preview.png" alt="" class="bg-logo" aria-hidden="true" />
+  <main class="card" role="main" aria-labelledby="title">
+    <h1 id="title" class="title">환영합니다!</h1>
+    <p class="subtitle">자리 예약을 하려면 로그인하세요</p>
+    {% if error %}
+      <div class="error" role="alert">{{ error }}</div>
+    {% endif %}
+    <form action="/login" method="POST" novalidate>
+      <div class="form-group">
+        <label for="email" class="form-label">이메일</label>
+        <input
+          type="email"
+          id="email"
+          name="email"
+          class="form-input"
+          inputmode="email"
+          autocomplete="email"
+          placeholder="이메일을 입력하세요"
+          required
+        />
+      </div>
+      <div class="form-group">
+        <label for="password" class="form-label">비밀번호</label>
+        <input
+          type="password"
+          id="password"
+          name="password"
+          class="form-input"
+          autocomplete="current-password"
+          placeholder="비밀번호를 입력하세요"
+          required
+        />
+      </div>
+      <div class="row">
+        <label for="remember" class="remember">
+          <input type="checkbox" id="remember" name="remember" />
+          로그인 상태 유지
+        </label>
+        <a class="link" href="/find_password">비밀번호 찾기</a>
+      </div>
+      <button type="submit" class="btn">로그인하기</button>
+      <div class="divider"><span>또는</span></div>
+      <p class="signup">
+        아직 계정이 없으신가요?
+        <a class="link" href="/signup">회원가입</a>
+      </p>
+    </form>
+  </main>
+</body>
+</html>

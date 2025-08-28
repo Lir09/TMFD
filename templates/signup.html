@@ -1,0 +1,45 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>signup</title>
+  <link rel="stylesheet" href="/static/css/signup.css">
+</head>
+<body>
+  <img src="/static/image/logo-removebg-preview.png" alt="" class="bg-logo" aria-hidden="true">
+  <main class="container">
+    <section class="card" role="form" aria-labelledby="title">
+      <h1 id="title" class="title">회원가입</h1>
+      <p class="subtitle">자리 예약을 이용하려면 정보를 입력하세요</p>
+
+      {% if error %}
+        <div class="error" role="alert">{{ error }}</div>
+      {% endif %}
+
+      <form class="form" action="/signup" method="POST" autocomplete="off" novalidate>
+        <div class="group">
+          <label for="name" class="label">이름</label>
+          <input id="name" name="name" type="text" class="input" placeholder="이름을 입력하세요" required>
+        </div>
+        <div class="group">
+          <label for="email" class="label">이메일</label>
+          <input id="email" name="email" type="email" class="input" inputmode="email" autocomplete="email" placeholder="이메일을 입력하세요" required>
+        </div>
+        <div class="group">
+          <label for="phone" class="label">휴대폰 번호</label>
+          <input id="phone" name="phone" type="tel" class="input" inputmode="tel" placeholder="010-0000-0000" required>
+        </div>
+        <div class="group">
+          <label for="password" class="label">비밀번호</label>
+          <input id="password" name="password" type="password" class="input" autocomplete="new-password" minlength="6" placeholder="비밀번호를 입력하세요" required>
+        </div>
+        <button type="submit" class="btn">회원가입하기</button>
+      </form>
+
+      <div class="divider"><span>또는</span></div>
+      <p class="login">이미 계정이 있으신가요? <a href="/login">로그인</a></p>
+    </section>
+  </main>
+</body>
+</html>
