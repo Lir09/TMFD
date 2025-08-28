@@ -1,16 +1,20 @@
 from flask import Flask, render_template, request, redirect, url_for, session, jsonify
-import sqlite3, bcrypt, os, re
+import sqlite3, bcrypt, os, re, calendar, random
 from functools import wraps
-from datetime import timedelta
-import random
+from datetime import timedelta, date
 
 app = Flask(__name__)
-app.secret_key = 'thisIsTmfd'
+app.secret_key = os.getenv('APP_SECRET', 'thisIsTmfd')
 DB_NAME = 'users.db'
 
-# ---------------- DB ----------------
-def init_db():
+def get_db():
     conn = sqlite3.connect(DB_NAME)
+    conn.row_factory = sqlite3.Row
+    conn.execute('PRAGMA foreign_keys = ON')
+    return conn
+
+def init_db():
+    conn = get_db()
     c = conn.cursor()
     c.execute('''
         CREATE TABLE IF NOT EXISTS users (
@@ -27,25 +31,25 @@ def init_db():
             email TEXT,
             title TEXT,
             points INTEGER,
-            visited_at DATETIME DEFAULT CURRENT_TIMESTAMP
+            visited_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+            FOREIGN KEY(email) REFERENCES users(email) ON DELETE CASCADE
+        )
+    ''')
+    c.execute('''
+        CREATE TABLE IF NOT EXISTS events (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            email TEXT NOT NULL,
+            ymd TEXT NOT NULL,
+            title TEXT NOT NULL,
+            time TEXT,
+            created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+            FOREIGN KEY(email) REFERENCES users(email) ON DELETE CASCADE
         )
     ''')
     conn.commit()
     conn.close()
 
 init_db()
-
-# --------------- Utils ---------------
-def login_required(f):
-    @wraps(f)
-    def decorated(*args, **kwargs):
-        if 'user' not in session:
-            return redirect(url_for('login'))
-        return f(*args, **kwargs)
-    return decorated
-
-def get_db():
-    return sqlite3.connect(DB_NAME)
 
 def is_valid_email(email: str) -> bool:
     return re.match(r'^[^@\s]+@[^@\s]+\.[^@\s]+$', email) is not None
@@ -54,56 +58,47 @@ def is_valid_phone(phone: str) -> bool:
     digits = re.sub(r'\D', '', phone)
     return len(digits) in (10, 11)
 
-# --------------- Routes ---------------
-# 루트: 로그인 안했으면 login, 했으면 index
+def login_required(f):
+    @wraps(f)
+    def decorated(*args, **kwargs):
+        authed = session.get('user') and session.get('email')
+        if authed:
+            return f(*args, **kwargs)
+        if request.path.startswith('/api/'):
+            return jsonify({'ok': False, 'error': 'unauthorized'}), 401
+        return redirect(url_for('login'))
+    return decorated
+
+@app.context_processor
+def inject_user():
+    return {"current_user": session.get('user'), "current_email": session.get('email')}
+
 @app.route('/')
 def root():
-    if 'user' in session:
+    if session.get('user') and session.get('email'):
         return redirect(url_for('index'))
     return redirect(url_for('login'))
 
-# 메인 대시보드
 @app.route('/index')
 @login_required
 def index():
+    email = session.get('email')
     conn = get_db()
     c = conn.cursor()
-    c.execute("SELECT mileage FROM users WHERE email = ?", (session['email'],))
+    c.execute("SELECT mileage FROM users WHERE email = ?", (email,))
     row = c.fetchone()
-    mileage = row[0] if row else 0
-
+    mileage = (row['mileage'] if row else 0)
     c.execute("""
         SELECT title, points, visited_at
         FROM activities
         WHERE email = ?
         ORDER BY visited_at DESC
         LIMIT 5
-    """, (session['email'],))
+    """, (email,))
     activities = c.fetchall()
     conn.close()
+    return render_template('index.html', username=session.get('user', ''), mileage=mileage, activities=activities)
 
-    return render_template(
-        'index.html',
-        username=session.get('user'),
-        mileage=mileage,
-        activities=activities
-    )
-
-# ---------------- 어바웃 ----------------
-@app.route('/about')
-@app.route('/about.html')
-@login_required
-def about_page():
-    return render_template('about.html')
-
-# ---------------- 학습자료실 ----------------
-@app.route('/study')
-@app.route('/study.html')
-@login_required
-def study_page():
-    return render_template('study.html')
-
-# 파일명 접근 호환
 @app.route('/index.html')
 def index_html():
     return redirect(url_for('index'))
@@ -112,7 +107,39 @@ def index_html():
 def main_html():
     return redirect(url_for('index'))
 
-# ---------------- 기타 페이지 ----------------
+@app.route('/personal')
+@app.route('/personal.html')
+@login_required
+def personal():
+    email = session.get('email')
+    conn = get_db()
+    c = conn.cursor()
+    c.execute("SELECT mileage FROM users WHERE email = ?", (email,))
+    row = c.fetchone()
+    mileage = row['mileage'] if row else 0
+    c.execute("""
+        SELECT title, points, visited_at
+        FROM activities
+        WHERE email = ?
+        ORDER BY visited_at DESC
+        LIMIT 5
+    """, (email,))
+    activities = c.fetchall()
+    conn.close()
+    return render_template('personal.html', username=session.get('user', ''), mileage=mileage, activities=activities)
+
+@app.route('/about')
+@app.route('/about.html')
+@login_required
+def about_page():
+    return render_template('about.html')
+
+@app.route('/study')
+@app.route('/study.html')
+@login_required
+def study_page():
+    return render_template('study.html')
+
 @app.route('/assessment')
 @app.route('/assessment.html')
 @login_required
@@ -131,7 +158,6 @@ def time_and_food_page():
 def reservation():
     return render_template('reservation.html')
 
-# ---------------- 인증 ----------------
 @app.route('/signup', methods=['GET', 'POST'])
 def signup():
     if request.method == 'POST':
@@ -139,7 +165,6 @@ def signup():
         email = request.form.get('email', '').strip().lower()
         phone = request.form.get('phone', '').strip()
         password = request.form.get('password', '')
-
         if not name:
             return render_template('signup.html', error="이름을 입력하세요.")
         if not email or not is_valid_email(email):
@@ -148,14 +173,12 @@ def signup():
             return render_template('signup.html', error="올바른 휴대폰 번호를 입력하세요.")
         if not password or len(password) < 6:
             return render_template('signup.html', error="비밀번호는 최소 6자 이상이어야 합니다.")
-
         conn = get_db()
         c = conn.cursor()
         c.execute("SELECT 1 FROM users WHERE email = ?", (email,))
         if c.fetchone():
             conn.close()
             return render_template('signup.html', error="이미 등록된 이메일입니다.")
-
         pw_hash = bcrypt.hashpw(password.encode('utf-8'), bcrypt.gensalt())
         c.execute("""
             INSERT INTO users (email, name, phone, password_hash, mileage)
@@ -172,38 +195,34 @@ def login():
         email = request.form.get('email', '').strip().lower()
         password = request.form.get('password', '')
         remember = request.form.get('remember')
-
         conn = get_db()
         c = conn.cursor()
         c.execute("SELECT email, name, phone, password_hash FROM users WHERE email = ?", (email,))
         user = c.fetchone()
         conn.close()
-
         if not user:
             return render_template('login.html', error="존재하지 않는 이메일입니다.")
-        if not user[3]:
+        if not user['password_hash']:
             return render_template('login.html', error="비밀번호 데이터가 손상되었습니다. 다시 회원가입을 진행해 주세요.")
-
-        if bcrypt.checkpw(password.encode('utf-8'), user[3]):
-            session['user'] = user[1]
-            session['email'] = user[0]
+        if bcrypt.checkpw(password.encode('utf-8'), user['password_hash']):
+            session['user'] = user['name']
+            session['email'] = user['email']
             if remember == "on":
                 session.permanent = True
                 app.permanent_session_lifetime = timedelta(days=7)
-
-            if user[0] == "admin@admin.com":
+            if user['email'] == "admin@admin.com":
                 return redirect(url_for('admin'))
             return redirect(url_for('index'))
         return render_template('login.html', error="이메일 또는 비밀번호가 올바르지 않습니다.")
+    if session.get('user') and session.get('email'):
+        return redirect(url_for('index'))
     return render_template('login.html')
 
-# 로그아웃
-@app.route('/logout', methods=['POST'])
+@app.route('/logout', methods=['GET', 'POST'])
 def logout():
     session.clear()
     return redirect(url_for('login'))
 
-# 비밀번호 찾기(2단계)
 @app.route('/find_password', methods=['GET', 'POST'])
 def find_password():
     if request.method == 'POST':
@@ -211,7 +230,6 @@ def find_password():
         email = request.form.get('email', '').strip().lower()
         code = request.form.get('code', '').strip()
         new_pw = request.form.get('new_password', '')
-
         if step == 1:
             conn = get_db()
             c = conn.cursor()
@@ -221,19 +239,20 @@ def find_password():
             if not user:
                 return render_template('find_password.html', error="등록되지 않은 이메일입니다.", email=email, step=1)
             session['pwreset_email'] = email
-            session['pwreset_code'] = str(random.randint(100000, 999999))  # 실제 서비스에서는 이메일 발송
+            session['pwreset_code'] = str(random.randint(100000, 999999))
             return render_template('find_password.html', step=2, email=email, code=session['pwreset_code'])
-
         if step == 2:
+            email_s = session.get('pwreset_email')
+            if not email_s:
+                return render_template('find_password.html', step=1, error="세션이 만료되었습니다. 다시 진행하세요.")
             if code != session.get('pwreset_code'):
-                return render_template('find_password.html', step=2, email=email, error="인증번호가 다릅니다.", code=session.get('pwreset_code'))
+                return render_template('find_password.html', step=2, email=email_s, error="인증번호가 다릅니다.", code=session.get('pwreset_code'))
             if not new_pw or len(new_pw) < 6:
-                return render_template('find_password.html', step=2, email=email, error="새 비밀번호는 최소 6자 이상입니다.", code=session.get('pwreset_code'))
-
+                return render_template('find_password.html', step=2, email=email_s, error="새 비밀번호는 최소 6자 이상입니다.", code=session.get('pwreset_code'))
             pw_hash = bcrypt.hashpw(new_pw.encode('utf-8'), bcrypt.gensalt())
             conn = get_db()
             c = conn.cursor()
-            c.execute("UPDATE users SET password_hash = ? WHERE email = ?", (pw_hash, email))
+            c.execute("UPDATE users SET password_hash = ? WHERE email = ?", (pw_hash, email_s))
             conn.commit()
             conn.close()
             session.pop('pwreset_email', None)
@@ -241,19 +260,78 @@ def find_password():
             return render_template('find_password.html', step=3, success="비밀번호 변경이 완료되었습니다.")
     return render_template('find_password.html', step=1)
 
-# API 예시
 @app.route('/api/user')
 def api_user():
-    if 'user' in session:
-        return jsonify({'login': True, 'username': session['user']})
+    if session.get('user'):
+        return jsonify({'login': True, 'username': session.get('user')})
     return jsonify({'login': False})
 
-# 관리자(샘플)
+def month_range(ym):
+    y, m = map(int, ym.split('-'))
+    first = date(y, m, 1)
+    last = date(y, m, calendar.monthrange(y, m)[1])
+    return first.strftime('%Y-%m-%d'), last.strftime('%Y-%m-%d')
+
+@app.route('/api/events', methods=['GET', 'POST'])
+@login_required
+def api_events():
+    email = session['email']
+    conn = get_db()
+    c = conn.cursor()
+    if request.method == 'GET':
+        ym = request.args.get('month')
+        start = request.args.get('start')
+        end = request.args.get('end')
+        if ym and not (start and end):
+            start, end = month_range(ym)
+        if not start or not end:
+            today = date.today()
+            start, end = month_range(today.strftime('%Y-%m'))
+        c.execute("""
+            SELECT id, ymd, title, time
+            FROM events
+            WHERE email = ? AND ymd BETWEEN ? AND ?
+            ORDER BY ymd ASC, time ASC, id ASC
+        """, (email, start, end))
+        rows = [dict(id=r['id'], ymd=r['ymd'], title=r['title'], time=r['time']) for r in c.fetchall()]
+        conn.close()
+        return jsonify(rows)
+    data = request.get_json(silent=True) or {}
+    ymd = (data.get('ymd') or '').strip()
+    title = (data.get('title') or '').strip()
+    tm = (data.get('time') or '').strip()
+    if not re.match(r'^\d{4}-\d{2}-\d{2}$', ymd):
+        conn.close(); return jsonify({'ok': False, 'error': 'invalid ymd'}), 400
+    if not title:
+        conn.close(); return jsonify({'ok': False, 'error': 'title required'}), 400
+    c.execute("INSERT INTO events(email, ymd, title, time) VALUES(?,?,?,?)", (email, ymd, title, tm or None))
+    conn.commit()
+    ev_id = c.lastrowid
+    conn.close()
+    return jsonify({'ok': True, 'id': ev_id, 'ymd': ymd, 'title': title, 'time': tm}), 201
+
+@app.route('/api/events/<int:event_id>', methods=['DELETE'])
+@login_required
+def api_events_delete(event_id):
+    email = session['email']
+    conn = get_db()
+    c = conn.cursor()
+    c.execute("DELETE FROM events WHERE id = ? AND email = ?", (event_id, email))
+    deleted = c.rowcount
+    conn.commit()
+    conn.close()
+    if deleted:
+        return jsonify({'ok': True})
+    return jsonify({'ok': False, 'error': 'not found'}), 404
+
 @app.route('/admin')
 @login_required
 def admin():
     return render_template('admin.html')
 
+@app.route('/_debug_session')
+def _debug_session():
+    return {"user": session.get('user'), "email": session.get('email')}
+
 if __name__ == '__main__':
-    # 프로덕션에서는 debug=False 권장
     app.run(host="0.0.0.0", port=5000, debug=True)
