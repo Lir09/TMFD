@@ -333,5 +333,291 @@ def admin():
 def _debug_session():
     return {"user": session.get('user'), "email": session.get('email')}
 
+# ====== 관리자 기능: 학급/반장 배치(최대 2명), 계정 삭제 ======
+
+# --- DB 마이그레이션(컬럼/테이블 없으면 생성) ---
+def column_exists(cur, table, col):
+    cur.execute(f"PRAGMA table_info({table})")
+    return any(row[1] == col for row in cur.fetchall())
+
+def ensure_admin_schema():
+    conn = get_db()
+    c = conn.cursor()
+    # classes 테이블
+    c.execute("""
+        CREATE TABLE IF NOT EXISTS classes (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            name TEXT UNIQUE NOT NULL,
+            grade TEXT
+        )
+    """)
+    # users.role, users.class_id 없으면 추가
+    if not column_exists(c, "users", "role"):
+        c.execute("ALTER TABLE users ADD COLUMN role TEXT DEFAULT 'student'")
+    if not column_exists(c, "users", "class_id"):
+        c.execute("ALTER TABLE users ADD COLUMN class_id INTEGER REFERENCES classes(id)")
+    conn.commit()
+    conn.close()
+
+ensure_admin_schema()
+
+# --- 관리자 권한 체크(세션의 이메일로 간단 구분) ---
+def admin_required(f):
+    @wraps(f)
+    def _wrap(*args, **kwargs):
+        if 'email' not in session or session['email'] != "admin@admin.com":
+            return jsonify({"error": "admin only"}), 403
+        return f(*args, **kwargs)
+    return _wrap
+
+# --- 헬퍼 ---
+def count_leaders_in_class(class_id: int) -> int:
+    conn = get_db(); c = conn.cursor()
+    c.execute("SELECT COUNT(*) FROM users WHERE role='leader' AND class_id=?", (class_id,))
+    n = c.fetchone()[0] or 0
+    conn.close()
+    return n
+
+def class_exists(class_id: int) -> bool:
+    conn = get_db(); c = conn.cursor()
+    c.execute("SELECT 1 FROM classes WHERE id=?", (class_id,))
+    ok = c.fetchone() is not None
+    conn.close()
+    return ok
+
+# --- 통계 ---
+@app.route('/admin/api/overview')
+@login_required
+@admin_required
+def admin_overview():
+    conn = get_db(); c = conn.cursor()
+    c.execute("SELECT COUNT(*) FROM users"); total_users = c.fetchone()[0]
+    c.execute("SELECT COUNT(*) FROM classes"); total_classes = c.fetchone()[0]
+    c.execute("SELECT id FROM classes")
+    assigned_two = 0
+    for (cid,) in c.fetchall():
+        if count_leaders_in_class(cid) == 2:
+            assigned_two += 1
+    conn.close()
+    return jsonify({
+        "users": total_users,
+        "classes": total_classes,
+        "classes_with_two_leaders": assigned_two
+    })
+
+# --- 학급 CRUD ---
+@app.route('/admin/api/classes', methods=['GET'])
+@login_required
+@admin_required
+def list_classes():
+    conn = get_db(); c = conn.cursor()
+    c.execute("SELECT id, name, grade FROM classes ORDER BY name")
+    rows = [{"id": r[0], "name": r[1], "grade": r[2]} for r in c.fetchall()]
+    conn.close()
+    return jsonify(rows)
+
+@app.route('/admin/api/classes', methods=['POST'])
+@login_required
+@admin_required
+def create_class():
+    data = request.get_json(force=True) or {}
+    name = (data.get("name") or "").strip()
+    grade = (data.get("grade") or None)
+    if not name:
+        return jsonify({"error": "학급명은 필수"}), 400
+    conn = get_db(); c = conn.cursor()
+    try:
+        c.execute("INSERT INTO classes(name, grade) VALUES (?,?)", (name, grade))
+        conn.commit()
+        cid = c.lastrowid
+        return jsonify({"id": cid, "name": name, "grade": grade}), 201
+    except sqlite3.IntegrityError:
+        return jsonify({"error": "중복 학급명"}), 409
+    finally:
+        conn.close()
+
+@app.route('/admin/api/classes/<int:cid>', methods=['PATCH'])
+@login_required
+@admin_required
+def rename_class(cid):
+    data = request.get_json(force=True) or {}
+    name = (data.get("name") or "").strip()
+    grade = data.get("grade")
+    if not class_exists(cid):
+        return jsonify({"error": "존재하지 않는 학급"}), 404
+    if not name:
+        return jsonify({"error": "학급명은 필수"}), 400
+    conn = get_db(); c = conn.cursor()
+    # 이름 중복 체크
+    c.execute("SELECT 1 FROM classes WHERE name=? AND id<>?", (name, cid))
+    if c.fetchone():
+        conn.close()
+        return jsonify({"error": "중복 학급명"}), 409
+    c.execute("UPDATE classes SET name=?, grade=? WHERE id=?", (name, grade, cid))
+    conn.commit(); conn.close()
+    return jsonify({"id": cid, "name": name, "grade": grade})
+
+@app.route('/admin/api/classes/<int:cid>', methods=['DELETE'])
+@login_required
+@admin_required
+def delete_class(cid):
+    if not class_exists(cid):
+        return jsonify({"error": "존재하지 않는 학급"}), 404
+    conn = get_db(); c = conn.cursor()
+    # 해당 반 소속 사용자 class_id 해제
+    c.execute("UPDATE users SET class_id=NULL WHERE class_id=?", (cid,))
+    c.execute("DELETE FROM classes WHERE id=?", (cid,))
+    conn.commit(); conn.close()
+    return "", 204
+
+# --- 사용자 조회(역할/배정 포함) ---
+@app.route('/admin/api/users', methods=['GET'])
+@login_required
+@admin_required
+def admin_users():
+    conn = get_db(); c = conn.cursor()
+    c.execute("""
+      SELECT u.email, u.name, u.phone, u.role, u.class_id, c.name
+      FROM users u
+      LEFT JOIN classes c ON u.class_id = c.id
+      ORDER BY u.name
+    """)
+    rows = [{
+        "email": r[0], "name": r[1], "phone": r[2],
+        "role": r[3] or "student",
+        "class_id": r[4],
+        "class_name": r[5]
+    } for r in c.fetchall()]
+    conn.close()
+    return jsonify(rows)
+
+# --- 계정 삭제 ---
+@app.route('/admin/api/users/delete', methods=['POST'])
+@login_required
+@admin_required
+def admin_delete_user():
+    data = request.get_json(force=True) or {}
+    email = (data.get("email") or "").strip().lower()
+    if not email:
+        return jsonify({"error": "email 필수"}), 400
+    if email == "admin@admin.com":
+        return jsonify({"error": "관리자 계정은 삭제 불가"}), 400
+    conn = get_db(); c = conn.cursor()
+    c.execute("DELETE FROM activities WHERE email=?", (email,))
+    c.execute("DELETE FROM users WHERE email=?", (email,))
+    conn.commit(); conn.close()
+    return "", 204
+
+# --- 계정당 반 할당 + 역할 설정(반마다 반장 2명 강제) ---
+@app.route('/admin/api/users/assign', methods=['POST'])
+@login_required
+@admin_required
+def admin_assign_user():
+    """
+    body: {
+      "email": "user@example.com",
+      "class_id": 1 or null,
+      "role": "leader" or "student"
+    }
+    규칙:
+    - role='leader'로 지정 + class_id!=null 인 경우, 해당 반의 leader 수가 2명이면 409
+    - class_id=None 이면 소속 해제
+    """
+    data = request.get_json(force=True) or {}
+    email = (data.get("email") or "").strip().lower()
+    role = (data.get("role") or "student").strip()
+    class_id = data.get("class_id", None)
+
+    conn = get_db(); c = conn.cursor()
+    c.execute("SELECT email FROM users WHERE email=?", (email,))
+    if not c.fetchone():
+        conn.close()
+        return jsonify({"error": "존재하지 않는 계정"}), 404
+
+    if class_id is not None and not class_exists(int(class_id)):
+        conn.close()
+        return jsonify({"error": "존재하지 않는 학급"}), 404
+
+    # 리더 2명 제한
+    if role == "leader" and class_id is not None:
+        n = count_leaders_in_class(int(class_id))
+        # 이미 그 반에 배정된 본인이라면, 현재 수를 다시 계산해야 하지만
+        # 간단히: 먼저 본인 정보를 읽어서 이전 class_id와 role을 확인
+        c.execute("SELECT role, class_id FROM users WHERE email=?", (email,))
+        prev_role, prev_cid = c.fetchone()
+        if not (prev_role == "leader" and prev_cid == int(class_id)):
+            if n >= 2:
+                conn.close()
+                return jsonify({"error": "해당 반에는 이미 반장이 2명입니다."}), 409
+
+    # 업데이트
+    c.execute("UPDATE users SET role=?, class_id=? WHERE email=?",
+              (role, int(class_id) if class_id is not None else None, email))
+    conn.commit()
+
+    # 최종 보증: 해당 반 리더 수 초과 시 롤백(이론상 위에서 걸러짐)
+    if class_id is not None and role == "leader":
+        if count_leaders_in_class(int(class_id)) > 2:
+            # 초과 시 원복
+            c.execute("UPDATE users SET class_id=NULL WHERE email=?", (email,))
+            conn.commit(); conn.close()
+            return jsonify({"error": "반장 2인 제한 위반(롤백됨)"}), 409
+
+    # 응답
+    c.execute("""
+      SELECT u.email, u.name, u.phone, u.role, u.class_id, c.name
+      FROM users u LEFT JOIN classes c ON u.class_id=c.id WHERE u.email=?
+    """, (email,))
+    r = c.fetchone(); conn.close()
+    return jsonify({
+        "email": r[0], "name": r[1], "phone": r[2],
+        "role": r[3], "class_id": r[4], "class_name": r[5]
+    })
+
+# --- 학급별 2명 일괄 배치(테이블 방식) ---
+@app.route('/admin/api/classes/<int:cid>/assign', methods=['POST'])
+@login_required
+@admin_required
+def admin_assign_two(cid):
+    if not class_exists(cid):
+        return jsonify({"error": "존재하지 않는 학급"}), 404
+    data = request.get_json(force=True) or {}
+    ids = data.get("emails") or []  # 이메일 0~2개
+    ids = [str(x).strip().lower() for x in ids if x]
+    if len(set(ids)) > 2:
+        return jsonify({"error": "한 반에는 최대 2명만 지정"}), 400
+
+    conn = get_db(); c = conn.cursor()
+    # 존재 확인
+    for em in ids:
+        c.execute("SELECT 1 FROM users WHERE email=?", (em,))
+        if not c.fetchone():
+            conn.close()
+            return jsonify({"error": f"존재하지 않는 계정: {em}"}), 400
+
+    # 먼저 이 반의 기존 리더/학생 소속을 해제하지 않고, 리더 2명만 맞춥니다.
+    # 1) 이 반의 기존 'leader' 들 모두 소속 해제
+    c.execute("UPDATE users SET class_id=NULL WHERE role='leader' AND class_id=?", (cid,))
+    # 2) 선택된 0~2명을 leader로 지정 + 이 반으로 이동
+    for em in ids:
+        c.execute("UPDATE users SET role='leader', class_id=? WHERE email=?", (cid, em))
+
+    # 최종 2명 보증
+    conn.commit()
+    if count_leaders_in_class(cid) > 2:
+        # 매우 이례적이지만 초과 시 모두 해제
+        c.execute("UPDATE users SET class_id=NULL WHERE role='leader' AND class_id=?", (cid,))
+        conn.commit(); conn.close()
+        return jsonify({"error": "반장 2인 제한 위반(롤백됨)"}), 409
+
+    # 응답
+    c.execute("""
+      SELECT u.email, u.name FROM users u WHERE u.role='leader' AND u.class_id=? ORDER BY u.name
+    """, (cid,))
+    leaders = [{"email": em, "name": nm} for (em, nm) in c.fetchall()]
+    conn.close()
+    return jsonify({"class_id": cid, "leaders": leaders})
+
+
 if __name__ == '__main__':
     app.run(host="0.0.0.0", port=5000, debug=True)
