@@ -1,208 +1,213 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="ko">
 <head>
-    <meta charset="UTF-8">
-    <title>학습자료실</title>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&family=Noto+Sans+KR:wght@400;500;700&display=swap" rel="stylesheet">
-    <style>
-        body {
-            font-family: 'Inter','Noto Sans KR',system-ui,-apple-system,Segoe UI,Roboto,'Apple SD Gothic Neo',sans-serif;
-            background: #fff;
-            margin: 0;
-            color: #151515;
-        }
-        .container {
-            max-width: 1000px;
-            margin: 48px auto 0 auto;
-            background: #fff;
-            border-radius: 16px;
-            box-shadow: 0 4px 24px #0001;
-            padding: 40px 32px 32px 32px;
-        }
-        h1 {
-            color: #151515;
-            font-size: 2.2rem;
-            font-weight: 700;
-            margin-bottom: 36px;
-            letter-spacing: -1px;
-        }
-        .subject-list {
-            display: grid;
-            grid-template-columns: 1fr 1fr 1fr;
-            gap: 32px;
-        }
-        .subject {
-            background: #fafbfc;
-            border-radius: 12px;
-            box-shadow: 0 2px 8px #0001;
-            padding: 28px 24px 24px 24px;
-            display: flex;
-            flex-direction: row;
-            align-items: center;
-            border-left: 6px solid #e5e7eb; /* 기본 연회색 */
-            transition: border-color 0.2s;
-        }
-        .subject .emoji {
-            font-size: 2.1rem;
-            margin-right: 18px;
-            flex-shrink: 0;
-        }
-        .subject h2 {
-            margin: 0 0 12px 0;
-            color: #151515;
-            font-size: 1.2rem;
-            font-weight: 700;
-            letter-spacing: -0.5px;
-        }
-        .btn1 {
-            background: #151515;
-            color: #fff;
-            border: none;
-            border-radius: 6px;
-            padding: 9px 18px;
-            font-size: 1rem;
-            font-weight: 600;
-            cursor: pointer;
-            margin-top: 8px;
-            box-shadow: 0 2px 6px #0002;
-            transition: background 0.2s;
-        }
-        .btn1:hover {
-            background: #222;
-        }
-        /* 과목별 테두리 색상 */
-        .subject.kor { border-left-color: #e57373; }    /* 국어 - 연빨강 */
-        .subject.math { border-left-color: #64b5f6; }   /* 수학 - 연파랑 */
-        .subject.soc { border-left-color: #ffd54f; }    /* 사회 - 연노랑 */
-        .subject.sci { border-left-color: #81c784; }    /* 과학 - 연초록 */
-        .subject.eng { border-left-color: #ba68c8; }    /* 영어 - 연보라 */
-        .subject.hist { border-left-color: #ffb74d; }   /* 한국사 - 연주황 */
-        @media (max-width: 900px) {
-            .subject-list { grid-template-columns: 1fr 1fr; }
-        }
-        @media (max-width: 600px) {
-            .container { padding: 16px 4vw; }
-            .subject-list { grid-template-columns: 1fr; gap: 18px; }
-        }
-        /* Header */
-.site-header { border-bottom:1px solid #eaeaea; background:#fff; }
-.site-header .container { height:64px; justify-content:space-between; }
-.logo img { height:45px; display:block; }
-.main-nav { display:none; gap:22px; letter-spacing:.02em; }
-.main-nav a { text-decoration:none; color:#222; font-weight:600; font-size:14px; }
-.main-nav a.active { background:#111; color:#fff; padding:6px 10px; border-radius:3px; }
-.user-actions { display:flex; gap:14px; align-items:center; }
-.small-link { text-decoration:none; color:#666; font-size:13px; }
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>학습자료실 · TMFD</title>
 
-/* Icons (간단) */
-.icon-btn { width:36px; height:36px; border:0; background:transparent; display:grid; place-items:center; cursor:pointer; }
-.i-globe { width:20px; height:20px; border:1.6px solid #222; border-radius:50%; position:relative; }
-.i-globe::before, .i-globe::after { content:''; position:absolute; background:#222; left:50%; transform:translateX(-50%); }
-.i-globe::before { top:2px; bottom:2px; width:1.6px; }
-.i-globe::after { top:50%; height:1.6px; width:70%; }
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&family=Noto+Sans+KR:wght@400;500;700&display=swap" rel="stylesheet">
 
-.title-block { padding:32px 0 12px; text-align:center; }
-.title-block h1 { margin:0 0 8px; font-weight:800; letter-spacing:.02em; font-size:36px; }
-.title-block .subtitle { margin:0; color:#666; font-size:13px; }
-.title-block .divider { width:40px; height:3px; background:#111; display:inline-block; margin-top:16px; border-radius:2px; }
+  <style>
+    *{box-sizing:border-box}
+    html,body{height:100%}
+    body{
+      margin:0; background:#fff; color:#151515;
+      font-family:'Inter','Noto Sans KR',system-ui,-apple-system,Segoe UI,Roboto,'Apple SD Gothic Neo',sans-serif;
+      -webkit-font-smoothing:antialiased; text-rendering:optimizeLegibility;
+    }
 
-/* Toolbar */
-.calendar-wrap { padding:16px 0 56px; }
-.cal-toolbar { width:100%; display:flex; align-items:center; justify-content:space-between; margin:14px 0 10px; }
-.cal-month { display:flex; align-items:center; gap:12px; font-size:16px; }
-.cal-arrows { display:flex; gap:6px; }
-.cal-views { display:flex; gap:8px; }
-.view-btn { min-width:42px; height:34px; padding:0 10px; border:1px solid #ddd; background:#fff; border-radius:4px; cursor:pointer; font-weight:600; }
-.view-btn.active { background:#111; color:#fff; border-color:#111; }
-    </style>
+    /* 상단바 */
+    .site-shell{border-bottom:1px solid #eee; background:#fff;}
+    .site-bar{
+      max-width:1120px; margin:0 auto; padding:0 16px;
+      height:60px; display:flex; align-items:center; justify-content:space-between;
+    }
+    .logo img{height:42px; display:block}
+    .main-nav{display:none; gap:18px; align-items:center}
+    .main-nav a{
+      text-decoration:none; color:#222; font-weight:600; font-size:14px;
+      padding:6px 4px; border-radius:0; /* 밑줄 스타일이 메인이라 라운드 제거 */
+    }
+    /* hover/active = 밑줄 표시 */
+    .main-nav a:hover{
+      text-decoration:underline;
+      text-decoration-thickness:2px;
+      text-underline-offset:6px;
+    }
+    .main-nav a.active{
+      text-decoration:underline;
+      text-decoration-thickness:3px;
+      text-underline-offset:8px;
+    }
+    .sub-nav:hover{
+        font-size: 15px;                 /* hover 시 살짝 크게 */
+        text-decoration: underline;      /* 밑줄 표시 */
+        text-decoration-thickness: 2px;
+        text-underline-offset: 6px;
+    }
+    .user-actions{display:flex; gap:12px; align-items:center}
+    .small-link{ text-decoration:none; color:#666; font-size:13px; }
+    .logout-btn{
+      background:#fff; color:#222; border:1px solid #bbb; border-radius:7px;
+      padding:7px 14px; font-size:13px; font-weight:700; cursor:pointer;
+    }
+    .logout-btn:hover{ background:#111; color:#fff; border-color:#111; }
+    .icon-btn{ width:36px; height:36px; border:0; background:transparent; display:grid; place-items:center; cursor:pointer; }
+    .threeline{ font-size:24px; }
+
+    /* 본문 컨테이너 */
+    .container{
+      max-width:1000px;
+      margin:48px auto 0;
+      background:#fff;
+      border:1px solid #eee;
+      border-radius:12px;
+      padding:32px;
+    }
+
+    .topline{display:flex; justify-content:space-between; align-items:center; margin-bottom:22px}
+    h1{margin:0; font-size:2rem; font-weight:800; letter-spacing:-.5px}
+    .home-btn{
+      background:#151515; color:#fff; border:1px solid #151515; border-radius:6px;
+      padding:9px 16px; font-size:0.95rem; font-weight:700; cursor:pointer;
+    }
+    .home-btn:hover{ background:#222; }
+
+    /* 과목 그리드 */
+    .subject-list{
+      display:grid;
+      grid-template-columns:1fr 1fr 1fr;
+      gap:24px;
+    }
+    .subject{
+      display:flex; align-items:center; gap:16px;
+      background:#fafbfc;
+      border:1px solid #eee;
+      border-left:4px solid #e5e7eb;
+      border-radius:10px;
+      padding:20px;
+    }
+    .subject .emoji{font-size:1.9rem; flex-shrink:0}
+    .subject h2{margin:0 0 8px; font-size:1.1rem; font-weight:700}
+
+    /* 과목 색상 (왼쪽 보더) */
+    .subject.kor { border-left-color:#e57373; }
+    .subject.math{ border-left-color:#64b5f6; }
+    .subject.soc { border-left-color:#ffd54f; }
+    .subject.sci { border-left-color:#81c784; }
+    .subject.eng { border-left-color:#ba68c8; }
+    .subject.hist{ border-left-color:#ffb74d; }
+
+    /* 카드 내부 버튼 */
+    .btn1{
+      background:#151515; color:#fff;
+      border:1px solid #151515;
+      border-radius:6px; padding:9px 16px;
+      font-size:0.95rem; font-weight:700; cursor:pointer;
+    }
+    .btn1:hover{ background:#222; }
+    .btn1:focus-visible{ outline:2px solid #8ab4ff; outline-offset:2px; }
+
+    /* 반응형 */
+    @media (min-width:960px){ .main-nav{ display:flex; } }
+    @media (max-width:900px){ .subject-list{ grid-template-columns:1fr 1fr; } }
+    @media (max-width:600px){
+      .container{ padding:16px; }
+      .subject-list{ grid-template-columns:1fr; gap:16px; }
+      .user-actions{ display:none; }
+    }
+  </style>
 </head>
 <body>
-      <header class="site-header">
-    <div class="container">
-      <button class="icon-btn" aria-label="메뉴 열기"><span class="threeline">☰</span></button>
-      <a href="#" class="logo" aria-label="홈" id="reloaded">
-        <img src="/static/assets/image.png" alt="TMFD Logo"/>
+
+  <!-- 상단바 -->
+  <header class="site-shell">
+    <div class="site-bar">
+      <button class="icon-btn" aria-label="메뉴"><span class="threeline">☰</span></button>
+
+      <a href="/index" class="logo" aria-label="홈">
+        <img src="/static/assets/image.png" alt="TMFD Logo">
       </a>
+
       <nav class="main-nav" aria-label="주 메뉴">
-        <a href="#" class="sub-nav">공유 일정</a>
-        <a href="#" class="sub-nav">개인 일정</a>
-        <a href="./assessment.html" class="sub-nav">수행평가</a>
-        <a href="./TimeAndFood.html" class="sub-nav">급식표 및 시간표</a>
-        <a href="./study.html" class="sub-nav">학습자료실</a>
-        <a href="./sit.html" class="sub-nav">야자 관리</a>
-        <a href="./about.html" class="sub-nav">도움말</a>
+        <a href="/index" class="sub-nav">공유 일정</a>
+        <a href="/personal" class="sub-nav">개인 일정</a>
+        <a href="/assessment" class="sub-nav">수행평가</a>
+        <a href="/TimeAndFood" class="sub-nav">급식표 및 시간표</a>
+        <a href="/study" class="sub-nav active">학습자료실</a>
+        <a href="/about" class="sub-nav">도움말</a>
       </nav>
+
       <div class="user-actions">
-        <a class="small-link" href="#">Login</a>
-        <a class="small-link" href="#">Join</a>
+        <!-- username 우선, 없으면 current_user 사용 -->
+        <div class="small-link">{{ username or current_user }} 님, 환영합니다!</div>
+        <form action="/logout" method="post" style="display:inline;">
+          <button type="submit" class="logout-btn">로그아웃</button>
+        </form>
       </div>
     </div>
   </header>
+
+  <!-- 본문 -->
+  <main>
     <div class="container">
-        <div style="display: flex; justify-content: space-between; align-items: center;">
-            <h1>학습자료실</h1>
-            <button onclick="window.location.href='index.html'" 
-                style="
-                    background: #151515;
-                    color: #fff;
-                    border: none;
-                    border-radius: 6px;
-                    padding: 9px 20px;
-                    font-size: 1rem;
-                    font-weight: 600;
-                    cursor: pointer;
-                    box-shadow: 0 2px 6px #0002;
-                    transition: background 0.2s;
-                "
-                onmouseover="this.style.background='#222'"
-                onmouseout="this.style.background='#151515'">
-                홈으로 가기
-            </button>
+      <div class="topline">
+        <h1>학습자료실</h1>
+        <button class="home-btn" onclick="location.href='/index'">홈으로 가기</button>
+      </div>
+
+      <div class="subject-list">
+        <div class="subject kor">
+          <span class="emoji">📖</span>
+          <div>
+            <h2>국어</h2>
+            <button onclick="window.open('https://drive.google.com/drive/folders/1-ff6qkpYigtwhuaUJqpBq13AY-21ExvJ?usp=sharing','_blank')" class="btn1">바로가기</button>
+          </div>
         </div>
-        <div class="subject-list">
-            <div class="subject kor">
-                <span class="emoji">📖</span>
-                <div>
-                    <h2>국어</h2>
-                    <button onclick="window.open('https://drive.google.com/drive/folders/1-ff6qkpYigtwhuaUJqpBq13AY-21ExvJ?usp=sharing', '_blank')" class="btn1">바로가기</button>
-                </div>
-            </div>
-            <div class="subject math">
-                <span class="emoji">🧮</span>
-                <div>
-                    <h2>수학</h2>
-                    <button onclick="window.open('https://drive.google.com/drive/folders/185CVzX_neXVfpc2Ocpt1e2TtztCqaWXc?usp=sharing', '_blank')" class="btn1">바로가기</button>
-                </div>
-            </div>
-            <div class="subject soc">
-                <span class="emoji">🌏</span>
-                <div>
-                    <h2>사회</h2>
-                    <button onclick="window.open('https://drive.google.com/drive/folders/1vlTz2PaFm8V5xvnvEywHED6izm7HeZUW?usp=sharing', '_blank')" class="btn1">바로가기</button>
-                </div>
-            </div>
-            <div class="subject sci">
-                <span class="emoji">🔬</span>
-                <div>
-                    <h2>과학</h2>
-                    <button onclick="window.open('https://drive.google.com/drive/folders/1SFE8UhNvzEhp1Ce_cwlCbZwuy8b9-z19?usp=sharing', '_blank')" class="btn1">바로가기</button>
-                </div>
-            </div>
-            <div class="subject eng">
-                <span class="emoji">📝</span>
-                <div>
-                    <h2>영어</h2>
-                    <button onclick="window.open('https://drive.google.com/drive/folders/147KGQWS7pbG0S6oFNd9JfIPQK3JBNN4M?usp=sharing', '_blank')" class="btn1">바로가기</button>
-                </div>
-            </div>
-            <div class="subject hist">
-                <span class="emoji">🏛️</span>
-                <div>
-                    <h2>한국사</h2>
-                    <button onclick="window.open('https://drive.google.com/drive/folders/1rpYyQYT682nhiY3J6fBiChkj_j3oERnX?usp=sharing', '_blank')" class="btn1">바로가기</button>
-                </div>
-            </div>
+
+        <div class="subject math">
+          <span class="emoji">🧮</span>
+          <div>
+            <h2>수학</h2>
+            <button onclick="window.open('https://drive.google.com/drive/folders/185CVzX_neXVfpc2Ocpt1e2TtztCqaWXc?usp=sharing','_blank')" class="btn1">바로가기</button>
+          </div>
         </div>
+
+        <div class="subject soc">
+          <span class="emoji">🌏</span>
+          <div>
+            <h2>사회</h2>
+            <button onclick="window.open('https://drive.google.com/drive/folders/1vlTz2PaFm8V5xvnvEywHED6izm7HeZUW?usp=sharing','_blank')" class="btn1">바로가기</button>
+          </div>
+        </div>
+
+        <div class="subject sci">
+          <span class="emoji">🔬</span>
+          <div>
+            <h2>과학</h2>
+            <button onclick="window.open('https://drive.google.com/drive/folders/1SFE8UhNvzEhp1Ce_cwlCbZwuy8b9-z19?usp=sharing','_blank')" class="btn1">바로가기</button>
+          </div>
+        </div>
+
+        <div class="subject eng">
+          <span class="emoji">📝</span>
+          <div>
+            <h2>영어</h2>
+            <button onclick="window.open('https://drive.google.com/drive/folders/147KGQWS7pbG0S6oFNd9JfIPQK3JBNN4M?usp=sharing','_blank')" class="btn1">바로가기</button>
+          </div>
+        </div>
+
+        <div class="subject hist">
+          <span class="emoji">🏛️</span>
+          <div>
+            <h2>한국사</h2>
+            <button onclick="window.open('https://drive.google.com/drive/folders/1rpYyQYT682nhiY3J6fBiChkj_j3oERnX?usp=sharing','_blank')" class="btn1">바로가기</button>
+          </div>
+        </div>
+      </div>
     </div>
+  </main>
 </body>
 </html>
