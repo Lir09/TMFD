@@ -1,0 +1,81 @@
+{
+  "currentPageId": "id-0pvwhlovar2qmez2kt8x",
+  "pageOrder": [
+    "id-0pvwhlovar2qmez2kt8x",
+    "id-95uhg4gxqdmez2kt4e",
+    "id-0nyrfotw90gmez2ksz5",
+    "id-rmpmm687vqfmez2ksud",
+    "id-rpzjztt8d3mez2ksp8",
+    "id-3ax24xgbvkvmez2ks8t",
+    "id-13qtfu63gk7hmez1xnh2",
+    "id-l2hufnqwrxmez1xlzl"
+  ],
+  "pages": {
+    "id-l2hufnqwrxmez1xlzl": {
+      "id": "id-l2hufnqwrxmez1xlzl",
+      "icon": "🧭",
+      "title": "시작 페이지",
+      "coverSmall": false,
+      "html": "\n            <h1>노션 스타일 노트</h1>\n            <p>/ 을 입력하면 블록 메뉴가 열립니다. #, ##, ###, -, 1., >, [ ] 같은 마크다운 단축키도 지원합니다.</p>\n            <details class=\"toggle\" open>\n              <summary>예시 토글</summary>\n              <div class=\"tcontent\"><p>토글 안의 내용입니다.</p></div>\n            </details>\n            <label class=\"todo\"><input type=\"checkbox\"><span contenteditable>할 일 예시</span></label>\n            <ul><li>글머리 기호</li></ul>\n            <ol><li>번호 목록</li></ol>\n            <div class=\"callout\"><div class=\"ico\">💡</div><div class=\"text\" contenteditable>콜아웃 박스</div></div>\n            <pre><code contenteditable>print('code block')</code></pre>\n          "
+    },
+    "id-13qtfu63gk7hmez1xnh2": {
+      "id": "id-13qtfu63gk7hmez1xnh2",
+      "icon": "📄",
+      "title": "새 페이지",
+      "coverSmall": true,
+      "html": "<div class=\"table\" contenteditable=\"false\">\n      <div class=\"tbl-actions\">\n        <button class=\"mini\" data-act=\"add-row\">+ 행</button>\n        <button class=\"mini\" data-act=\"add-col\">+ 열</button>\n        <button class=\"mini\" data-act=\"del-row\">행 삭제</button>\n        <button class=\"mini\" data-act=\"del-col\">열 삭제</button>\n      </div>\n      <table><tbody></tbody></table>\n      <div class=\"tbl-caption\" contenteditable=\"\" data-listener-added_d25681f9=\"true\">표 설명</div>\n    </div><div class=\"file-card\" data-file-id=\"id-tite6iyrl2mez2itft\">\n            <div>📎</div>\n            <div class=\"meta\"><div class=\"name\">admin.html</div><div class=\"type\" style=\"color:#666; font-size:12px;\">text/html</div></div>\n            <button class=\"open\">열기</button>\n          </div><div class=\"callout\"><div class=\"ico\">😊</div><div class=\"text\" contenteditable=\"\">콜아웃 텍스트ㅁ</div></div><figure class=\"image\"><img data-file-id=\"id-pr8t541faomez2jvde\" src=\"blob:http://192.168.0.24:5000/52618ba7-5577-44b7-9041-1dda4607c4ca\" alt=\"Sticker Baby Sticker by Minecraft.gif\"><figcaption contenteditable=\"\">캡션</figcaption></figure><details class=\"toggle\" open=\"\"><summary contenteditable=\"\">집가고 싶다면?</summary><div class=\"tcontent\" contenteditable=\"\">집가</div></details><br>"
+    },
+    "id-3ax24xgbvkvmez2ks8t": {
+      "id": "id-3ax24xgbvkvmez2ks8t",
+      "icon": "📄",
+      "title": "새 페이지",
+      "coverSmall": false,
+      "html": ""
+    },
+    "id-rpzjztt8d3mez2ksp8": {
+      "id": "id-rpzjztt8d3mez2ksp8",
+      "icon": "📄",
+      "title": "새 페이지",
+      "coverSmall": false,
+      "html": ""
+    },
+    "id-rmpmm687vqfmez2ksud": {
+      "id": "id-rmpmm687vqfmez2ksud",
+      "icon": "📄",
+      "title": "새 페이지",
+      "coverSmall": false,
+      "html": ""
+    },
+    "id-0nyrfotw90gmez2ksz5": {
+      "id": "id-0nyrfotw90gmez2ksz5",
+      "icon": "📄",
+      "title": "새 페이지",
+      "coverSmall": false,
+      "html": ""
+    },
+    "id-95uhg4gxqdmez2kt4e": {
+      "id": "id-95uhg4gxqdmez2kt4e",
+      "icon": "📄",
+      "title": "새 페이지",
+      "coverSmall": false,
+      "html": ""
+    },
+    "id-0pvwhlovar2qmez2kt8x": {
+      "id": "id-0pvwhlovar2qmez2kt8x",
+      "icon": "📄",
+      "title": "새 페이지",
+      "coverSmall": false,
+      "html": ""
+    }
+  },
+  "settings": {
+    "headingSizes": {
+      "h1": 28,
+      "h2": 22,
+      "h3": 18,
+      "h4": 16,
+      "h5": 14,
+      "h6": 13
+    }
+  }
+}

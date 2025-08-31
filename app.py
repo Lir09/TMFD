@@ -7,6 +7,9 @@ from datetime import timedelta, date
 from flask import Flask, render_template, request, redirect, url_for, session, jsonify, send_from_directory
 import mimetypes, uuid, pathlib, time
 from werkzeug.utils import secure_filename
+from datetime import datetime, timedelta
+import re
+from flask import jsonify, request
 
 app = Flask(__name__)
 app.secret_key = os.getenv('APP_SECRET', 'thisIsTmfd')
@@ -987,18 +990,19 @@ def api_files_upload():
 @app.route('/uploads/<path:subpath>')
 @login_required
 def serve_upload(subpath):
-    # 소유자만 읽기
     email = session['email']
     safe_email = re.sub(r'[^a-zA-Z0-9._-]+','_', email)
-    # subpath는 "safe_email/filename"이어야 함
+
     parts = pathlib.PurePosixPath(subpath).parts
     if not parts or parts[0] != safe_email:
         return "forbidden", 403
+
     directory = os.path.join(UPLOAD_ROOT, safe_email)
     filename = os.path.join(*parts[1:]) if len(parts) > 1 else ''
     if not filename:
         return "not found", 404
-    return flask.send_from_directory(directory, filename, as_attachment=False)
+
+    return send_from_directory(directory, filename, as_attachment=False)
 
 @app.route('/api/bookmark')
 @login_required
@@ -1040,7 +1044,217 @@ def api_bookmark():
         "icon": _abs(icon)
     })
 
+# ====================== Kakao Talk (OpenBuilder Skill) ======================
+# 기능:
+#  1) /api/kakao/pair/start  : TMFD에서 6자리 코드 발급 (로그인 필요)
+#  2) /kakao/skill/register  : 카톡에서 "/등록 123456" → botUserKey와 계정/반 매핑
+#  3) /kakao/skill/assessments : 카톡에서 "/수행평가" → 남은시간/마감일/제목 리스트Card 응답
+#
+# 사용 흐름:
+#  - 학생이 TMFD 로그인 → "카카오 연결" 클릭 → /api/kakao/pair/start 호출로 6자리 코드 획득
+#  - 학생이 카톡에서 "/등록 6자리" → 매핑 완료
+#  - 이후 "/수행평가" 입력하면 무료(Pull) 방식으로 목록 출력
 
+from datetime import datetime, timedelta
+import re
+from flask import jsonify, request
+
+# ---------- DB 스키마 (구독/페어링) ----------
+def ensure_notify_schema():
+    conn = get_db(); c = conn.cursor()
+    c.execute("""
+        CREATE TABLE IF NOT EXISTS notify_subscriptions (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            email TEXT NOT NULL REFERENCES users(email) ON DELETE CASCADE,
+            class_id INTEGER REFERENCES classes(id) ON DELETE SET NULL,
+            id_type TEXT NOT NULL DEFAULT 'botUserKey',   -- appUserId | plusfriendUserKey | botUserKey
+            kakao_user_id TEXT NOT NULL,
+            enabled INTEGER NOT NULL DEFAULT 1,
+            created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+            UNIQUE(email, class_id)
+        )
+    """)
+    c.execute("CREATE INDEX IF NOT EXISTS idx_notify_class ON notify_subscriptions(class_id, enabled)")
+    conn.commit(); conn.close()
+
+def ensure_pair_schema():
+    conn = get_db(); c = conn.cursor()
+    c.execute("""
+      CREATE TABLE IF NOT EXISTS pair_codes(
+        code TEXT PRIMARY KEY,
+        email TEXT NOT NULL REFERENCES users(email) ON DELETE CASCADE,
+        class_id INTEGER REFERENCES classes(id) ON DELETE SET NULL,
+        expires_at TEXT NOT NULL           -- UTC (YYYY-MM-DD HH:MM:SS)
+      )
+    """)
+    conn.commit(); conn.close()
+
+ensure_notify_schema()
+ensure_pair_schema()
+
+# ---------- 공통 유틸 (카카오 스킬 응답 포맷) ----------
+def _kakao_simple_text(text: str):
+    return {
+        "version": "2.0",
+        "template": {
+            "outputs": [{"simpleText": {"text": text}}],
+            "quickReplies": [
+                {"action": "message", "label": "수행평가 보기", "messageText": "/수행평가"},
+            ],
+        },
+    }
+
+def _kakao_list_card(header_title: str, items: list, more_url: str = "/assessment.html"):
+    # items: [{title, description, linkUrl}]
+    return {
+        "version":"2.0",
+        "template":{
+            "outputs":[
+                {"listCard":{
+                    "header":{"title": header_title},
+                    "items":[
+                        {
+                            "title": it["title"],
+                            "description": it["description"],
+                            "link": {"web": it.get("linkUrl", more_url)}
+                        } for it in items[:5]  # 상위 5개 노출
+                    ],
+                    "buttons":[
+                        {"label":"TMFD 열기","action":"webLink","webLinkUrl": more_url}
+                    ]
+                }}],
+            "quickReplies":[
+                {"action":"message","label":"새로고침","messageText":"/수행평가"}
+            ]
+        }
+    }
+
+def _parse_skill_user(req_json):
+    u = (req_json or {}).get("userRequest", {}).get("user", {})
+    return u.get("id"), (u.get("type") or "botUserKey")
+
+def _fmt_ko(dt: datetime):
+    return dt.strftime("%m/%d %H:%M")
+
+def _human_remain(due: datetime):
+    diff = due - datetime.now()
+    h = int(diff.total_seconds() // 3600)
+    if h < 0:
+        return f"지각 {abs(h)}h"
+    if h < 24:
+        return f"{h}h 남음"
+    return f"{h//24}일 남음"
+
+# ---------- 1) TMFD → 6자리 코드 발급 (로그인 필요) ----------
+@app.route('/api/kakao/pair/start', methods=['POST'])
+@login_required
+def pair_start():
+    # 내 반(class_id) 확인
+    role, class_id = get_me_role_class()
+    if not class_id:
+        return jsonify({"error":"class not assigned"}), 400
+
+    code = f"{random.randint(0, 999999):06d}"
+    exp = (datetime.utcnow() + timedelta(minutes=10)).strftime("%Y-%m-%d %H:%M:%S")
+
+    conn = get_db(); c = conn.cursor()
+    c.execute("""
+      INSERT OR REPLACE INTO pair_codes(code, email, class_id, expires_at)
+      VALUES(?,?,?,?)
+    """, (code, session['email'], class_id, exp))
+    conn.commit(); conn.close()
+
+    return jsonify({"code": code, "expires_in": 600})
+
+# ---------- 2) 카톡 → "/등록 123456" (페어링) ----------
+@app.route("/kakao/skill/register", methods=["POST"])
+def kakao_skill_register():
+    payload = request.get_json(force=True, silent=True) or {}
+    bot_user_id, id_type = _parse_skill_user(payload)
+    utter = (payload.get("userRequest", {}).get("utterance") or "").strip()
+
+    m = re.search(r'(\d{6,8})', utter)
+    if not m:
+        return jsonify(_kakao_simple_text("등록코드가 필요해요. 예) /등록 123456"))
+
+    code = m.group(1)
+
+    conn = get_db(); c = conn.cursor()
+    c.execute("SELECT email, class_id, expires_at FROM pair_codes WHERE code=?", (code,))
+    row = c.fetchone()
+    if not row:
+        conn.close()
+        return jsonify(_kakao_simple_text("유효하지 않은 코드예요. TMFD에서 새 코드를 발급해 주세요."))
+
+    # 만료 확인
+    expires_at = datetime.strptime(row["expires_at"], "%Y-%m-%d %H:%M:%S")
+    if datetime.utcnow() > expires_at:
+        conn.close()
+        return jsonify(_kakao_simple_text("코드가 만료되었어요. TMFD에서 새 코드를 발급해 주세요."))
+
+    email, class_id = row["email"], row["class_id"]
+
+    # upsert: 같은 (email,class_id)면 갱신
+    c.execute("""
+      INSERT INTO notify_subscriptions(email, class_id, id_type, kakao_user_id, enabled)
+      VALUES(?,?,?,?,1)
+      ON CONFLICT(email, class_id) DO UPDATE SET
+        id_type=excluded.id_type,
+        kakao_user_id=excluded.kakao_user_id,
+        enabled=1
+    """, (email, class_id, 'botUserKey', bot_user_id))
+    c.execute("DELETE FROM pair_codes WHERE code=?", (code,))
+    conn.commit(); conn.close()
+
+    return jsonify(_kakao_simple_text("연결 완료! 이제 '/수행평가'라고 보내면 목록을 보여줄게요."))
+
+# ---------- 3) 카톡 → "/수행평가" (리스트 카드 응답) ----------
+@app.route("/kakao/skill/assessments", methods=["POST"])
+def kakao_skill_assessments():
+    payload = request.get_json(force=True, silent=True) or {}
+    bot_user_id, id_type = _parse_skill_user(payload)
+
+    # botUserKey → class_id
+    conn = get_db(); c = conn.cursor()
+    c.execute("""
+      SELECT class_id FROM notify_subscriptions
+      WHERE id_type=? AND kakao_user_id=? AND enabled=1 LIMIT 1
+    """, (id_type, bot_user_id or ""))
+    r = c.fetchone()
+    if not r:
+        conn.close()
+        return jsonify(_kakao_simple_text("아직 계정 연결이 필요합니다.\nTMFD에서 '카카오 연결'로 코드를 받고, /등록 6자리코드를 입력해 주세요."))
+
+    class_id = int(r["class_id"])
+
+    # 해당 반의 수행평가 불러오기
+    c.execute("""
+      SELECT id, subject, title, type, due_at
+      FROM assessments
+      WHERE class_id=?
+      ORDER BY due_at ASC, id ASC
+    """, (class_id,))
+    rows = c.fetchall(); conn.close()
+
+    if not rows:
+        return jsonify(_kakao_simple_text("등록된 수행평가가 없어요. 🧹"))
+
+    items=[]
+    for x in rows:
+        # 저장 포맷: "YYYY-MM-DDTHH:MM" 또는 "YYYY-MM-DD HH:MM"
+        try:
+            due = datetime.strptime(x["due_at"].replace(" ", "T"), "%Y-%m-%dT%H:%M")
+        except Exception:
+            # 포맷 이상 시 스킵
+            continue
+        items.append({
+            "title": f"[{x['subject']}] {x['title']}",
+            "description": f"마감 { _fmt_ko(due) } · { _human_remain(due) } · { x['type'] or '-' }",
+            "linkUrl": "/assessment.html"  # 필요 시 상세 페이지로 변경
+        })
+
+    return jsonify(_kakao_list_card("수행평가 · 남은시간", items))
+# ====================== /Kakao Talk ======================
 
 # ---------------------- 엔트리 포인트 ----------------------
 if __name__ == '__main__':

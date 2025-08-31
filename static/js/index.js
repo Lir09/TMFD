@@ -162,3 +162,25 @@ btnWeek.addEventListener('click', () => activate('week'));
 
 /* 최초 렌더 */
 render();
+document.addEventListener("DOMContentLoaded", () => {
+  const btn = document.getElementById("showCodeBtn");
+
+  if (btn) {
+    btn.addEventListener("click", () => {
+      fetch("/api/kakao/pair/start", { method: "POST" })
+        .then(r => r.json())
+        .then(data => {
+          if (data.code) {
+            alert(`인증코드: ${data.code}`);
+          } else {
+            alert("코드 발급 실패");
+          }
+        })
+        .catch(err => {
+          console.error(err);
+          alert("서버 오류");
+        });
+    });
+  }
+});
+
