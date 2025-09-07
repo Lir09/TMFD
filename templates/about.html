@@ -1,16 +1,169 @@
 <!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>TMFD - 도움말</title>
-    <link rel="stylesheet" href="/static/css/about.css">
-</head>
-<body>
-    <div class="container">
-    <a href="./index.html" class="mv_back">뒤로가기</a>
-    <h1>이것은 도움말 페이지입니다.</h1>
-    </div>
-    <script src="/static/js/about.js"></script>
-</body>
+<html lang="ko">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>도움말 · FAQ</title>
+    <style>
+      body {
+        margin: 0;
+        font-family: "Noto Sans KR", sans-serif;
+        line-height: 1.6;
+        background: #fafafa;
+        color: #111;
+      }
+      header {
+        background: #111;
+        color: #fff;
+        padding: 16px;
+      }
+      header h1 {
+        margin: 0;
+        font-size: 20px;
+      }
+      main {
+        max-width: 800px;
+        margin: 24px auto;
+        padding: 0 16px;
+      }
+      h2 {
+        margin-top: 32px;
+        font-size: 18px;
+        border-left: 4px solid #111;
+        padding-left: 8px;
+      }
+      details {
+        background: #fff;
+        border: 1px solid #ddd;
+        border-radius: 8px;
+        margin: 12px 0;
+        padding: 12px;
+      }
+      summary {
+        font-weight: 700;
+        cursor: pointer;
+      }
+      summary::marker {
+        content: "▶ ";
+      }
+      details[open] summary::marker {
+        content: "▼ ";
+      }
+      .ans {
+        margin-top: 8px;
+        color: #333;
+      }
+    </style>
+  </head>
+  <body>
+    <header>
+      <h1 onclick="location.href='index.html'">TMFD 도움말 · FAQ</h1>
+    </header>
+    <main>
+      <p>여기는 TMFD를 사용하면서 자주 묻는 질문과 답변을 모아둔 곳이에요.</p>
+
+      <h2>계정 · 로그인</h2>
+      <details>
+        <summary>회원가입은 어떻게 하나요?</summary>
+        <div class="ans">
+          로그인 화면에서 <b>회원가입</b> 버튼을 눌러 이름, 이메일, 휴대폰 번호,
+          비밀번호를 입력하면 가입할 수 있어요.
+        </div>
+      </details>
+      <details>
+        <summary>비밀번호를 잊어버렸어요.</summary>
+        <div class="ans">
+          <b>비밀번호 찾기</b> 메뉴에서 이메일을 입력하면 인증번호를 받아 새
+          비밀번호를 설정할 수 있어요.
+        </div>
+      </details>
+      <details>
+        <summary>로그인 상태를 오래 유지할 수 있나요?</summary>
+        <div class="ans">
+          로그인 시 <b>기억하기</b>를 체크하면 최대 7일 동안 로그인 상태가
+          유지돼요.
+        </div>
+      </details>
+
+      <h2>수행평가</h2>
+      <details>
+        <summary>내 수행평가는 어디서 확인하나요?</summary>
+        <div class="ans">
+          상단 메뉴에서 <b>수행평가</b>를 클릭하면 우리 반의 평가 일정과 진행
+          상황을 볼 수 있어요.
+        </div>
+      </details>
+      <details>
+        <summary>수행평가가 안 보여요.</summary>
+        <div class="ans">
+          아직 우리 반에 수행평가가 등록되지 않았을 수 있어요. 반장이나 선생님이
+          추가하면 자동으로 나타나요.
+        </div>
+      </details>
+
+      <h2>개인 일정 · 시간표</h2>
+      <details>
+        <summary>개인 일정을 추가하려면?</summary>
+        <div class="ans">
+          <b>캘린더</b> 화면에서 날짜를 눌러 제목과 시간을 입력하면 나만의
+          일정이 추가돼요.
+        </div>
+      </details>
+      <details>
+        <summary>시간표와 급식은 어디서 볼 수 있나요?</summary>
+        <div class="ans">
+          상단 메뉴의 <b>시간표·급식</b>을 누르면 오늘의 교시와 급식 정보를
+          확인할 수 있어요.
+        </div>
+      </details>
+
+      <h2>파일 · 노트</h2>
+      <!-- <details>
+        <summary>과제 파일은 어떻게 올리나요?</summary>
+        <div class="ans">
+          <b>내 페이지</b>에서 파일 업로드 버튼을 눌러 올릴 수 있어요. 용량은
+          20MB까지 가능해요.
+        </div>
+      </details> -->
+      <details>
+        <summary>개인 노트는 뭐예요?</summary>
+        <div class="ans">
+          내 생각이나 공부 내용을 정리하는 공간이에요. 제목과 내용을 입력해
+          저장하면 나중에 다시 볼 수 있어요.
+        </div>
+      </details>
+
+      <h2>카카오톡 연동</h2>
+      <details>
+        <summary>카카오톡과 어떻게 연결하나요?</summary>
+        <div class="ans">
+          내 페이지에서 <b>카카오 연결</b> 버튼을 눌러 코드를 받은 뒤, 카톡에서
+          <code>/등록 6자리</code>를 보내면 연결돼요.
+        </div>
+      </details>
+      <details>
+        <summary>카톡에서 뭐가 보여요?</summary>
+        <div class="ans">
+          <b>/수행평가</b>라고 입력하면 우리 반 수행평가 목록을 카톡에서 바로 볼
+          수 있어요.
+        </div>
+      </details>
+
+      <h2>기타</h2>
+      <details>
+        <summary>로그인하자마자 튕겨요.</summary>
+        <div class="ans">
+          세션이 만료되었을 수 있어요. 다시 로그인해 주세요. 시크릿 모드에서는
+          유지 시간이 짧을 수 있어요.
+        </div>
+      </details>
+      <details>
+        <summary>문제가 계속 생기면?</summary>
+        <div class="ans">
+          화면에 나온 오류 메시지를 확인하고, 그래도 해결되지 않으면 관리자에게
+          문의하세요.
+        </div>
+      </details>
+    </main>
+  </body>
 </html>

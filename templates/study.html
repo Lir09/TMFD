@@ -1,213 +1,141 @@
-<!doctype html>
+<!DOCTYPE html>
 <html lang="ko">
-<head>
-  <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width,initial-scale=1" />
-  <title>TMFD - 학습자료실</title>
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width,initial-scale=1" />
+    <title>TMFD - 학습자료실</title>
 
-  <link rel="preconnect" href="https://fonts.googleapis.com">
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&family=Noto+Sans+KR:wght@400;500;700&display=swap" rel="stylesheet">
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&family=Noto+Sans+KR:wght@400;500;700&display=swap"
+      rel="stylesheet"
+    />
+    <link rel="stylesheet" href="/static/css/study.css" />
+  </head>
+  <body>
+    <!-- 상단바 -->
+    <header class="site-shell">
+      <div class="site-bar">
+        <button class="icon-btn" aria-label="메뉴">
+          <span class="threeline">☰</span>
+        </button>
 
-  <style>
-    *{box-sizing:border-box}
-    html,body{height:100%}
-    body{
-      margin:0; background:#fff; color:#151515;
-      font-family:'Inter','Noto Sans KR',system-ui,-apple-system,Segoe UI,Roboto,'Apple SD Gothic Neo',sans-serif;
-      -webkit-font-smoothing:antialiased; text-rendering:optimizeLegibility;
-    }
+        <a href="/index" class="logo" aria-label="홈">
+          <img src="/static/assets/image.png" alt="TMFD Logo" />
+        </a>
 
-    /* 상단바 */
-    .site-shell{border-bottom:1px solid #eee; background:#fff;}
-    .site-bar{
-      max-width:1120px; margin:0 auto; padding:0 16px;
-      height:60px; display:flex; align-items:center; justify-content:space-between;
-    }
-    .logo img{height:42px; display:block}
-    .main-nav{display:none; gap:18px; align-items:center}
-    .main-nav a{
-      text-decoration:none; color:#222; font-weight:600; font-size:14px;
-      padding:6px 4px; border-radius:0; /* 밑줄 스타일이 메인이라 라운드 제거 */
-    }
-    /* hover/active = 밑줄 표시 */
-    .main-nav a:hover{
-      text-decoration:underline;
-      text-decoration-thickness:2px;
-      text-underline-offset:6px;
-    }
-    .main-nav a.active{
-      text-decoration:underline;
-      text-decoration-thickness:3px;
-      text-underline-offset:8px;
-    }
-    .sub-nav:hover{
-        font-size: 15px;                 /* hover 시 살짝 크게 */
-        text-decoration: underline;      /* 밑줄 표시 */
-        text-decoration-thickness: 2px;
-        text-underline-offset: 6px;
-    }
-    .user-actions{display:flex; gap:12px; align-items:center}
-    .small-link{ text-decoration:none; color:#666; font-size:13px; }
-    .logout-btn{
-      background:#fff; color:#222; border:1px solid #bbb; border-radius:7px;
-      padding:7px 14px; font-size:13px; font-weight:700; cursor:pointer;
-    }
-    .logout-btn:hover{ background:#111; color:#fff; border-color:#111; }
-    .icon-btn{ width:36px; height:36px; border:0; background:transparent; display:grid; place-items:center; cursor:pointer; }
-    .threeline{ font-size:24px; }
+        <nav class="main-nav" aria-label="주 메뉴">
+          <a href="/index" class="sub-nav">공유 일정</a>
+          <a href="/personal" class="sub-nav">개인 일정</a>
+          <a href="/assessment" class="sub-nav">수행평가</a>
+          <a href="/TimeAndFood" class="sub-nav">급식표 및 시간표</a>
+          <a href="/study" class="sub-nav active">학습자료실</a>
+          <a href="/about" class="sub-nav">도움말</a>
+        </nav>
 
-    /* 본문 컨테이너 */
-    .container{
-      max-width:1000px;
-      margin:48px auto 0;
-      background:#fff;
-      border:1px solid #eee;
-      border-radius:12px;
-      padding:32px;
-    }
-
-    .topline{display:flex; justify-content:space-between; align-items:center; margin-bottom:22px}
-    h1{margin:0; font-size:2rem; font-weight:800; letter-spacing:-.5px}
-    .home-btn{
-      background:#151515; color:#fff; border:1px solid #151515; border-radius:6px;
-      padding:9px 16px; font-size:0.95rem; font-weight:700; cursor:pointer;
-    }
-    .home-btn:hover{ background:#222; }
-
-    /* 과목 그리드 */
-    .subject-list{
-      display:grid;
-      grid-template-columns:1fr 1fr 1fr;
-      gap:24px;
-    }
-    .subject{
-      display:flex; align-items:center; gap:16px;
-      background:#fafbfc;
-      border:1px solid #eee;
-      border-left:4px solid #e5e7eb;
-      border-radius:10px;
-      padding:20px;
-    }
-    .subject .emoji{font-size:1.9rem; flex-shrink:0}
-    .subject h2{margin:0 0 8px; font-size:1.1rem; font-weight:700}
-
-    /* 과목 색상 (왼쪽 보더) */
-    .subject.kor { border-left-color:#e57373; }
-    .subject.math{ border-left-color:#64b5f6; }
-    .subject.soc { border-left-color:#ffd54f; }
-    .subject.sci { border-left-color:#81c784; }
-    .subject.eng { border-left-color:#ba68c8; }
-    .subject.hist{ border-left-color:#ffb74d; }
-
-    /* 카드 내부 버튼 */
-    .btn1{
-      background:#151515; color:#fff;
-      border:1px solid #151515;
-      border-radius:6px; padding:9px 16px;
-      font-size:0.95rem; font-weight:700; cursor:pointer;
-    }
-    .btn1:hover{ background:#222; }
-    .btn1:focus-visible{ outline:2px solid #8ab4ff; outline-offset:2px; }
-
-    /* 반응형 */
-    @media (min-width:960px){ .main-nav{ display:flex; } }
-    @media (max-width:900px){ .subject-list{ grid-template-columns:1fr 1fr; } }
-    @media (max-width:600px){
-      .container{ padding:16px; }
-      .subject-list{ grid-template-columns:1fr; gap:16px; }
-      .user-actions{ display:none; }
-    }
-  </style>
-</head>
-<body>
-
-  <!-- 상단바 -->
-  <header class="site-shell">
-    <div class="site-bar">
-      <button class="icon-btn" aria-label="메뉴"><span class="threeline">☰</span></button>
-
-      <a href="/index" class="logo" aria-label="홈">
-        <img src="/static/assets/image.png" alt="TMFD Logo">
-      </a>
-
-      <nav class="main-nav" aria-label="주 메뉴">
-        <a href="/index" class="sub-nav">공유 일정</a>
-        <a href="/personal" class="sub-nav">개인 일정</a>
-        <a href="/assessment" class="sub-nav">수행평가</a>
-        <a href="/TimeAndFood" class="sub-nav">급식표 및 시간표</a>
-        <a href="/study" class="sub-nav active">학습자료실</a>
-        <a href="/about" class="sub-nav">도움말</a>
-      </nav>
-
-      <div class="user-actions">
-        <!-- username 우선, 없으면 current_user 사용 -->
-        <div class="small-link">{{ username or current_user }} 님, 환영합니다!</div>
-        <form action="/logout" method="post" style="display:inline;">
-          <button type="submit" class="logout-btn">로그아웃</button>
-        </form>
+        <div class="user-actions">
+          <!-- username 우선, 없으면 current_user 사용 -->
+          <div class="small-link">
+            {{ username or current_user }} 님, 환영합니다!
+          </div>
+          <form action="/logout" method="post" style="display: inline">
+            <button type="submit" class="logout-btn">로그아웃</button>
+          </form>
+        </div>
       </div>
-    </div>
-  </header>
+    </header>
 
-  <!-- 본문 -->
-  <main>
-    <div class="container">
-      <div class="topline">
-        <h1>학습자료실</h1>
-        <button class="home-btn" onclick="location.href='/index'">홈으로 가기</button>
-      </div>
-
-      <div class="subject-list">
-        <div class="subject kor">
-          <span class="emoji">📖</span>
-          <div>
-            <h2>국어</h2>
-            <button onclick="window.open('https://drive.google.com/drive/folders/1-ff6qkpYigtwhuaUJqpBq13AY-21ExvJ?usp=sharing','_blank')" class="btn1">바로가기</button>
-          </div>
+    <!-- 본문 -->
+    <main>
+      <div class="container">
+        <div class="topline">
+          <h1>학습자료실</h1>
+          <button class="home-btn" onclick="location.href='/index'">
+            홈으로 가기
+          </button>
         </div>
 
-        <div class="subject math">
-          <span class="emoji">🧮</span>
-          <div>
-            <h2>수학</h2>
-            <button onclick="window.open('https://drive.google.com/drive/folders/185CVzX_neXVfpc2Ocpt1e2TtztCqaWXc?usp=sharing','_blank')" class="btn1">바로가기</button>
+        <div class="subject-list">
+          <div class="subject kor">
+            <span class="emoji">📖</span>
+            <div>
+              <h2>국어</h2>
+              <button
+                onclick="window.open('https://drive.google.com/drive/folders/1-ff6qkpYigtwhuaUJqpBq13AY-21ExvJ?usp=sharing','_blank')"
+                class="btn1"
+              >
+                바로가기
+              </button>
+            </div>
           </div>
-        </div>
 
-        <div class="subject soc">
-          <span class="emoji">🌏</span>
-          <div>
-            <h2>사회</h2>
-            <button onclick="window.open('https://drive.google.com/drive/folders/1vlTz2PaFm8V5xvnvEywHED6izm7HeZUW?usp=sharing','_blank')" class="btn1">바로가기</button>
+          <div class="subject math">
+            <span class="emoji">🧮</span>
+            <div>
+              <h2>수학</h2>
+              <button
+                onclick="window.open('https://drive.google.com/drive/folders/185CVzX_neXVfpc2Ocpt1e2TtztCqaWXc?usp=sharing','_blank')"
+                class="btn1"
+              >
+                바로가기
+              </button>
+            </div>
           </div>
-        </div>
 
-        <div class="subject sci">
-          <span class="emoji">🔬</span>
-          <div>
-            <h2>과학</h2>
-            <button onclick="window.open('https://drive.google.com/drive/folders/1SFE8UhNvzEhp1Ce_cwlCbZwuy8b9-z19?usp=sharing','_blank')" class="btn1">바로가기</button>
+          <div class="subject soc">
+            <span class="emoji">🌏</span>
+            <div>
+              <h2>사회</h2>
+              <button
+                onclick="window.open('https://drive.google.com/drive/folders/1vlTz2PaFm8V5xvnvEywHED6izm7HeZUW?usp=sharing','_blank')"
+                class="btn1"
+              >
+                바로가기
+              </button>
+            </div>
           </div>
-        </div>
 
-        <div class="subject eng">
-          <span class="emoji">📝</span>
-          <div>
-            <h2>영어</h2>
-            <button onclick="window.open('https://drive.google.com/drive/folders/147KGQWS7pbG0S6oFNd9JfIPQK3JBNN4M?usp=sharing','_blank')" class="btn1">바로가기</button>
+          <div class="subject sci">
+            <span class="emoji">🔬</span>
+            <div>
+              <h2>과학</h2>
+              <button
+                onclick="window.open('https://drive.google.com/drive/folders/1SFE8UhNvzEhp1Ce_cwlCbZwuy8b9-z19?usp=sharing','_blank')"
+                class="btn1"
+              >
+                바로가기
+              </button>
+            </div>
           </div>
-        </div>
 
-        <div class="subject hist">
-          <span class="emoji">🏛️</span>
-          <div>
-            <h2>한국사</h2>
-            <button onclick="window.open('https://drive.google.com/drive/folders/1rpYyQYT682nhiY3J6fBiChkj_j3oERnX?usp=sharing','_blank')" class="btn1">바로가기</button>
+          <div class="subject eng">
+            <span class="emoji">📝</span>
+            <div>
+              <h2>영어</h2>
+              <button
+                onclick="window.open('https://drive.google.com/drive/folders/147KGQWS7pbG0S6oFNd9JfIPQK3JBNN4M?usp=sharing','_blank')"
+                class="btn1"
+              >
+                바로가기
+              </button>
+            </div>
+          </div>
+
+          <div class="subject hist">
+            <span class="emoji">🏛️</span>
+            <div>
+              <h2>한국사</h2>
+              <button
+                onclick="window.open('https://drive.google.com/drive/folders/1rpYyQYT682nhiY3J6fBiChkj_j3oERnX?usp=sharing','_blank')"
+                class="btn1"
+              >
+                바로가기
+              </button>
+            </div>
           </div>
         </div>
       </div>
-    </div>
-  </main>
-</body>
+    </main>
+  </body>
 </html>

@@ -1,0 +1,227 @@
+* {
+  box-sizing: border-box;
+}
+html,
+body {
+  height: 100%;
+}
+body {
+  margin: 0;
+  background: #fff;
+  color: #151515;
+  font-family: "Inter", "Noto Sans KR", system-ui, -apple-system, Segoe UI,
+    Roboto, "Apple SD Gothic Neo", sans-serif;
+  -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
+}
+
+/* 상단바 */
+.site-shell {
+  border-bottom: 1px solid #eee;
+  background: #fff;
+}
+.site-bar {
+  max-width: 1120px;
+  margin: 0 auto;
+  padding: 0 16px;
+  height: 60px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+.logo img {
+  height: 42px;
+  display: block;
+}
+.main-nav {
+  display: none;
+  gap: 18px;
+  align-items: center;
+}
+.main-nav a {
+  text-decoration: none;
+  color: #222;
+  font-weight: 600;
+  font-size: 14px;
+  padding: 6px 4px;
+  border-radius: 0; /* 밑줄 스타일이 메인이라 라운드 제거 */
+}
+/* hover/active = 밑줄 표시 */
+.main-nav a:hover {
+  text-decoration: underline;
+  text-decoration-thickness: 2px;
+  text-underline-offset: 6px;
+}
+.main-nav a.active {
+  text-decoration: underline;
+  text-decoration-thickness: 3px;
+  text-underline-offset: 8px;
+}
+.sub-nav:hover {
+  font-size: 15px; /* hover 시 살짝 크게 */
+  text-decoration: underline; /* 밑줄 표시 */
+  text-decoration-thickness: 2px;
+  text-underline-offset: 6px;
+}
+.user-actions {
+  display: flex;
+  gap: 12px;
+  align-items: center;
+}
+.small-link {
+  text-decoration: none;
+  color: #666;
+  font-size: 13px;
+}
+.logout-btn {
+  background: #fff;
+  color: #222;
+  border: 1px solid #bbb;
+  border-radius: 7px;
+  padding: 7px 14px;
+  font-size: 13px;
+  font-weight: 700;
+  cursor: pointer;
+}
+.logout-btn:hover {
+  background: #111;
+  color: #fff;
+  border-color: #111;
+}
+.icon-btn {
+  width: 36px;
+  height: 36px;
+  border: 0;
+  background: transparent;
+  display: grid;
+  place-items: center;
+  cursor: pointer;
+}
+.threeline {
+  font-size: 24px;
+}
+
+/* 본문 컨테이너 */
+.container {
+  max-width: 1000px;
+  margin: 48px auto 0;
+  background: #fff;
+  border: 1px solid #eee;
+  border-radius: 12px;
+  padding: 32px;
+}
+
+.topline {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 22px;
+}
+h1 {
+  margin: 0;
+  font-size: 2rem;
+  font-weight: 800;
+  letter-spacing: -0.5px;
+}
+.home-btn {
+  background: #151515;
+  color: #fff;
+  border: 1px solid #151515;
+  border-radius: 6px;
+  padding: 9px 16px;
+  font-size: 0.95rem;
+  font-weight: 700;
+  cursor: pointer;
+}
+.home-btn:hover {
+  background: #222;
+}
+
+/* 과목 그리드 */
+.subject-list {
+  display: grid;
+  grid-template-columns: 1fr 1fr 1fr;
+  gap: 24px;
+}
+.subject {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  background: #fafbfc;
+  border: 1px solid #eee;
+  border-left: 4px solid #e5e7eb;
+  border-radius: 10px;
+  padding: 20px;
+}
+.subject .emoji {
+  font-size: 1.9rem;
+  flex-shrink: 0;
+}
+.subject h2 {
+  margin: 0 0 8px;
+  font-size: 1.1rem;
+  font-weight: 700;
+}
+
+/* 과목 색상 (왼쪽 보더) */
+.subject.kor {
+  border-left-color: #e57373;
+}
+.subject.math {
+  border-left-color: #64b5f6;
+}
+.subject.soc {
+  border-left-color: #ffd54f;
+}
+.subject.sci {
+  border-left-color: #81c784;
+}
+.subject.eng {
+  border-left-color: #ba68c8;
+}
+.subject.hist {
+  border-left-color: #ffb74d;
+}
+
+/* 카드 내부 버튼 */
+.btn1 {
+  background: #151515;
+  color: #fff;
+  border: 1px solid #151515;
+  border-radius: 6px;
+  padding: 9px 16px;
+  font-size: 0.95rem;
+  font-weight: 700;
+  cursor: pointer;
+}
+.btn1:hover {
+  background: #222;
+}
+.btn1:focus-visible {
+  outline: 2px solid #8ab4ff;
+  outline-offset: 2px;
+}
+
+/* 반응형 */
+@media (min-width: 960px) {
+  .main-nav {
+    display: flex;
+  }
+}
+@media (max-width: 900px) {
+  .subject-list {
+    grid-template-columns: 1fr 1fr;
+  }
+}
+@media (max-width: 600px) {
+  .container {
+    padding: 16px;
+  }
+  .subject-list {
+    grid-template-columns: 1fr;
+    gap: 16px;
+  }
+  .user-actions {
+    display: none;
+  }
+}

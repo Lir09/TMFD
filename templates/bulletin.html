@@ -1,0 +1,77 @@
+<!DOCTYPE html>
+<html lang="ko">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>게시판</title>
+    <link rel="stylesheet" href="/static/css/bulletin.css" />
+  </head>
+  <body>
+    <header>
+      <div class="header_main">
+        <div class="text_nav">
+          <input
+            type="text"
+            class="input_text"
+            placeholder="검색어를 입력하세요..."
+          />
+          <button class="btn">🔍</button>
+        </div>
+      </div>
+      <div class="sub_header">
+        <p class="sub_text">홈</p>
+        <p class="sub_text">공지</p>
+        <p class="sub_text">자유</p>
+        <p class="sub_text">Q&amp;A</p>
+      </div>
+    </header>
+
+    <!-- 게시판 메인 -->
+    <main class="board">
+      <div class="board_top">
+        <h2>게시판</h2>
+        <button class="write_btn">글쓰기</button>
+      </div>
+      <table class="board_table">
+        <thead>
+          <tr>
+            <th>번호</th>
+            <th>제목</th>
+            <th>작성자</th>
+            <th>글 종류</th>
+            <th>날짜</th>
+            <th>조회수</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td>1</td>
+            <td class="title"><a href="#">첫 번째 글입니다</a></td>
+            <td>관리자</td>
+            <td>Q&amp;A</td>
+            <td>2025-09-02</td>
+            <td>15</td>
+          </tr>
+          <tr>
+            <td>2</td>
+            <td class="title"><a href="#">두 번째 글</a></td>
+            <td>홍길동</td>
+            <td>자유글</td>
+            <td>2025-09-01</td>
+            <td>7</td>
+          </tr>
+        </tbody>
+      </table>
+
+      <!-- 페이지네이션 -->
+      <div class="pagination">
+        <button>&laquo;</button>
+        <button class="active">1</button>
+        <button>2</button>
+        <button>3</button>
+        <button>&raquo;</button>
+      </div>
+    </main>
+  </body>
+  <script src="/static/js/bulletin.js"></script>
+</html>
