@@ -1,378 +1,294 @@
-/* ===================== State & Utils ===================== */
-const State = {
-  current: "ALL",
-  q: "",
-  st: "",
+/* ============================ State (sample) ============================ */
+// NOTE: 실제 로그인 로직에서 role을 주입하세요: "student" | "leader" | "admin"
+const state = {
+  role: "leader", // 예시값. 운영 연동 시 실제 권한으로 교체
+  subject: "ALL",
+  query: "",
+  status: "",
   sort: "due",
-  isLeader: false,
-  isAdmin: false,
-  classId: null,
-  data: [],
+  items: [
+    {
+      id: "a1", subj: "국어",   title:"광장 독서감상문", type:"보고서",
+      due:"2025-09-10T23:59", status:"진행중", progress:45,
+      checklist:["책 읽기","구성 정리","초안 작성","최종 제출"], checks:[1,1,0,0]
+    },
+    {
+      id: "a2", subj: "영어",   title:"Poetic Devices 발표", type:"발표",
+      due:"2025-09-09T20:00", status:"미제출", progress:10,
+      checklist:["작품 선정","예문 수집","슬라이드"], checks:[1,0,0]
+    },
+    {
+      id: "a3", subj: "한국사", title:"편전·조총 비교 보고", type:"실험",
+      due:"2025-09-08T18:00", status:"채점중", progress:100,
+      checklist:["자료조사","실험 설계","실험 수행","정리"], checks:[1,1,1,1]
+    },
+    {
+      id: "a4", subj: "정보",   title:"TMFD UI 리팩터", type:"코딩",
+      due:"2025-09-12T18:00", status:"진행중", progress:30,
+      checklist:["디자인 합치기","행 클릭 상세","추가 드로어"], checks:[1,1,0]
+    }
+  ]
 };
 
-function fmtDateLocal(dt) {
-  // dt: Date
-  return dt.toLocaleString("ko-KR", {
-    month: "2-digit",
-    day: "2-digit",
-    hour: "2-digit",
-    minute: "2-digit",
-  });
-}
-function parseISO(s) {
-  // "YYYY-MM-DDTHH:MM" → Date(로컬로 해석)
-  // Safari 호환: replace space
-  return new Date(s.replace(" ", "T"));
-}
-function hoursLeft(dt) {
-  return (dt - new Date()) / 36e5;
-}
-function dueClass(dt) {
-  const h = hoursLeft(dt);
-  if (h < 0) return "red";
-  if (h <= 48) return "orange";
-  return "gray";
-}
-function bySort(a, b, key) {
-  if (key === "due") return a._due - b._due;
-  if (key === "remaining") return hoursLeft(a._due) - hoursLeft(b._due);
-  if (key === "progress") return (b.progress || 0) - (a.progress || 0);
-  return 0;
-}
-function toast(msg, ms = 1800) {
-  const t = document.getElementById("toast");
+/* ============================ Helpers ============================ */
+const $ = (q,root=document)=>root.querySelector(q);
+const $$ = (q,root=document)=>Array.from(root.querySelectorAll(q));
+
+const fmtDateTime = (iso)=>{
+  if(!iso) return "-";
+  const d = new Date(iso);
+  const y = d.getFullYear();
+  const m = (d.getMonth()+1).toString().padStart(2,"0");
+  const dd = d.getDate().toString().padStart(2,"0");
+  const hh = d.getHours().toString().padStart(2,"0");
+  const mm = d.getMinutes().toString().padStart(2,"0");
+  return `${y}-${m}-${dd} ${hh}:${mm}`;
+};
+
+const msRemaining = (iso)=> new Date(iso).getTime() - Date.now();
+
+const fmtRemain = (iso)=>{
+  const ms = msRemaining(iso);
+  const sign = ms < 0 ? -1 : 1;
+  const abs = Math.abs(ms);
+  const d = Math.floor(abs/86400000);
+  const h = Math.floor((abs%86400000)/3600000);
+  const m = Math.floor((abs%3600000)/60000);
+  const txt = d ? `${d}일 ${h}시간` : (h ? `${h}시간 ${m}분` : `${m}분`);
+  return sign<0 ? `지각 ${txt}` : `${txt} 남음`;
+};
+
+const pillFor = (iso)=>{
+  const ms = msRemaining(iso);
+  if(ms < 0) return ['pill red','지각'];
+  if(ms <= 48*3600000) return ['pill yellow','임박'];
+  return ['pill green','정상'];
+};
+
+const toast = (msg)=>{
+  const t = $('#toast');
   t.textContent = msg;
-  t.classList.add("show");
-  setTimeout(() => t.classList.remove("show"), ms);
+  t.classList.add('show');
+  setTimeout(()=>t.classList.remove('show'), 1600);
+};
+
+/* ============================ Render ============================ */
+function renderHeader(){
+  const now = new Date();
+  const y = now.getFullYear(), m=String(now.getMonth()+1).padStart(2,'0'), d=String(now.getDate()).padStart(2,'0');
+  $('#today').textContent = `${y}-${m}-${d}`;
+
+  // 관리자만 배지 + 추가버튼 표시
+  if(state.role === 'admin'){
+    $('#roleBadge').classList.remove('hidden');
+    $('#roleBadge').textContent = 'ADMIN';
+    $('#addBtn').classList.remove('hidden');
+  }else{
+    $('#roleBadge').classList.add('hidden');
+    $('#addBtn').classList.add('hidden');
+  }
 }
 
-/* ===================== DOM Refs & Header ===================== */
-const rowsEl = document.getElementById("rows");
-const tabsEl = document.getElementById("tabs");
-const todayEl = document.getElementById("today");
-const qEl = document.getElementById("q");
-const stEl = document.getElementById("status");
-const sortEl = document.getElementById("sort");
-const addBtn = document.getElementById("addBtn");
-const needClass = document.getElementById("needClass");
-const emptyEl = document.getElementById("empty");
-const roleBadge = document.getElementById("roleBadge");
-
-document.getElementById("clear").onclick = () => {
-  qEl.value = "";
-  stEl.value = "";
-  sortEl.value = "due";
-  State.q = "";
-  State.st = "";
-  State.sort = "due";
-  render();
-};
-
-todayEl.textContent = new Date().toLocaleString("ko-KR", {
-  year: "numeric",
-  month: "2-digit",
-  day: "2-digit",
-  weekday: "short",
-  hour: "2-digit",
-  minute: "2-digit",
-});
-
-/* ===================== Filters & Tabs ===================== */
-tabsEl.addEventListener("click", (e) => {
-  const b = e.target.closest(".tab");
-  if (!b) return;
-  document
-    .querySelectorAll(".tab")
-    .forEach((t) => t.classList.remove("active"));
-  b.classList.add("active");
-  State.current = b.dataset.subj;
-  render();
-});
-qEl.oninput = (e) => {
-  State.q = e.target.value.trim();
-  render();
-};
-stEl.onchange = (e) => {
-  State.st = e.target.value;
-  render();
-};
-sortEl.onchange = (e) => {
-  State.sort = e.target.value;
-  render();
-};
-
-/* ===================== Drawer Helpers ===================== */
-const detailDrawer = document.getElementById("drawer");
-function openDrawer(x) {
-  if (!x) return;
-  document.getElementById("dwTitle").textContent = x.title;
-  document.getElementById("dwSubj").textContent = x.subject;
-  document.getElementById("dwType").textContent = x.type || "-";
-  document.getElementById("dwDue").textContent = fmtDateLocal(x._due);
-  document.getElementById("dwStatus").textContent = x.status || "-";
-  document.getElementById("dwProg").style.width = (x.progress || 0) + "%";
-  const ul = document.getElementById("dwList");
-  ul.innerHTML = "";
-  (x.checklist || []).forEach((t) =>
-    ul.insertAdjacentHTML(
-      "beforeend",
-      `<li><input type="checkbox" disabled><span>${t}</span></li>`
-    )
-  );
-  // actions (leader/admin could delete in the future)
-  const actions = document.getElementById("dwActions");
-  actions.innerHTML = "";
-  if (State.isLeader || State.isAdmin) {
-    const delBtn = document.createElement("button");
-    delBtn.className = "btn danger";
-    delBtn.textContent = "삭제";
-    delBtn.onclick = async (ev) => {
-      ev.stopPropagation();
-      if (!confirm("정말 삭제할까요?")) return;
-      const res = await fetch(`/api/assessments/${x.id}`, {
-        method: "DELETE",
-      });
-      if (res.ok) {
-        toast("삭제됨");
-        closeDrawer();
-        await loadData();
-        render();
-        fillSide();
-      } else {
-        const j = await res.json().catch(() => ({}));
-        toast(j.error || "삭제 실패");
+function filteredItems(){
+  return state.items
+    .filter(it => state.subject==='ALL' ? true : it.subj===state.subject)
+    .filter(it => state.status ? it.status===state.status : true)
+    .filter(it => state.query ? (it.title+it.subj+it.type).toLowerCase().includes(state.query.toLowerCase()) : true)
+    .sort((a,b)=>{
+      if(state.sort==='due'){
+        return new Date(a.due)-new Date(b.due);
+      }else if(state.sort==='remaining'){
+        return msRemaining(a.due)-msRemaining(b.due);
+      }else{
+        return b.progress - a.progress; // progress desc
       }
-    };
-    actions.appendChild(delBtn);
-  }
-  detailDrawer.classList.add("open");
-}
-function closeDrawer() {
-  detailDrawer.classList.remove("open");
-}
-detailDrawer.addEventListener("click", (e) => {
-  if (e.target.id === "drawer") closeDrawer();
-});
-
-/* ===================== Add Drawer (leader/admin only) ===================== */
-const addDrawer = document.getElementById("addDrawer");
-const adSubject = document.getElementById("adSubject");
-const adTitle = document.getElementById("adTitle");
-const adType = document.getElementById("adType");
-const adDue = document.getElementById("adDue");
-const adStatus = document.getElementById("adStatus");
-const adProg = document.getElementById("adProg");
-const adList = document.getElementById("adList");
-
-function openAdd() {
-  addDrawer.classList.add("open");
-}
-function closeAdd() {
-  addDrawer.classList.remove("open");
-}
-document.getElementById("addCancel").onclick = closeAdd;
-addDrawer.addEventListener("click", (e) => {
-  if (e.target.id === "addDrawer") closeAdd();
-});
-
-document.getElementById("addCreate").onclick = async () => {
-  const subject = adSubject.value.trim();
-  const title = adTitle.value.trim();
-  const type = adType.value.trim();
-  const due_at = adDue.value.trim(); // "YYYY-MM-DDTHH:MM"
-  const status = adStatus.value.trim();
-  const progress = Math.max(
-    0,
-    Math.min(100, parseInt(adProg.value || "0", 10))
-  );
-  const checklist = adList.value
-    .split("\n")
-    .map((s) => s.trim())
-    .filter(Boolean);
-
-  if (!subject || !title || !due_at) {
-    toast("과목/제목/마감은 필수입니다.");
-    return;
-  }
-
-  const res = await fetch("/api/assessments", {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({
-      subject,
-      title,
-      type,
-      due_at,
-      status,
-      progress,
-      checklist,
-    }),
-  });
-  if (res.ok) {
-    toast("등록 완료");
-    closeAdd();
-    adTitle.value = "";
-    adDue.value = "";
-    adProg.value = "0";
-    adList.value = "";
-    await loadData();
-    render();
-    fillSide();
-  } else {
-    const j = await res.json().catch(() => ({}));
-    toast(j.error || "등록 실패");
-  }
-};
-
-/* ===================== Data Load & Render ===================== */
-async function fetchJSON(url) {
-  const r = await fetch(url);
-  if (!r.ok) throw new Error(`HTTP ${r.status}`);
-  return r.json();
+    });
 }
 
-async function loadMe() {
-  const me = await fetchJSON("/api/user"); // 확장된 응답 사용
-  if (!me.login) {
-    location.href = "/login";
-    return;
-  }
-  State.isAdmin = me.email === "admin@admin.com";
-  State.isLeader = me.role === "leader";
-  State.classId = me.class_id ?? null;
+function renderRows(){
+  const wrap = $('#rows'); wrap.innerHTML = '';
+  const list = filteredItems();
+  $('#empty').classList.toggle('hidden', list.length!==0);
+  $('#needClass').classList.add('hidden'); // hook
 
-  // badge
-  roleBadge.textContent = State.isAdmin
-    ? "관리자 계정"
-    : State.isLeader
-    ? "반장 권한"
-    : "학생 계정";
+  list.forEach(it=>{
+    const row = document.createElement('div');
+    row.className='row';
+    row.dataset.id = it.id;
 
-  // leader/admin만 추가 버튼 노출
-  if (State.isLeader || State.isAdmin) {
-    addBtn.style.display = "";
-    addBtn.onclick = () => {
-      if (!State.classId && !State.isAdmin) {
-        toast("반 배정이 필요합니다.");
-        return;
-      }
-      openAdd();
-    };
-  }
-}
+    const [pillCls, pillTxt] = pillFor(it.due);
 
-async function loadData() {
-  if (!State.classId && !State.isAdmin) {
-    // 반 미배정 학생이면 빈 목록 + 안내
-    State.data = [];
-    needClass.style.display = "";
-    emptyEl.style.display = "none";
-    rowsEl.innerHTML = "";
-    return;
-  }
-  needClass.style.display = "none";
-
-  // 관리자면 자신의 class_id 또는 쿼리 파라미터를 추가로 붙일 수 있지만
-  // 여기서는 자신의 class_id 기준으로 조회(필요하면 ?class_id= 사용)
-  const list = await fetchJSON("/api/assessments");
-  // 가공
-  State.data = list.map((x) => {
-    const d = { ...x };
-    d._due = parseISO(x.due_at);
-    return d;
-  });
-}
-
-function render() {
-  rowsEl.innerHTML = "";
-  let list = State.data
-    .filter((x) => State.current === "ALL" || x.subject === State.current)
-    .filter(
-      (x) =>
-        !State.q ||
-        (x.title + (x.type || "") + x.subject)
-          .toLowerCase()
-          .includes(State.q.toLowerCase())
-    )
-    .filter((x) => !State.st || x.status === State.st)
-    .sort((a, b) => bySort(a, b, State.sort));
-
-  emptyEl.style.display = list.length
-    ? "none"
-    : State.classId || State.isAdmin
-    ? ""
-    : "none";
-
-  list.forEach((x) => {
-    const dueCls = dueClass(x._due);
-    const remain = hoursLeft(x._due);
-    const remainTxt =
-      remain < 0
-        ? `지각 ${Math.abs(remain).toFixed(1)}h`
-        : `${remain.toFixed(1)}h`;
-    const row = document.createElement("div");
-    row.className = "row";
     row.innerHTML = `
-      <div class="cell"><input type="checkbox" aria-label="select" onclick="event.stopPropagation()"/></div>
-      <div class="cell"><span class="pill">${x.subject}</span></div>
-      <div class="cell title" title="${x.title}">${x.title}</div>
-      <div class="cell"><span class="chip">${x.type || "-"}</span></div>
-      <div class="cell due ${dueCls}">${fmtDateLocal(x._due)}</div>
-      <div class="cell remain"><span class="badge">${remainTxt}</span></div>
+      <div class="chk"><input type="checkbox" data-id="${it.id}" /></div>
+      <div>${it.subj}</div>
+      <div>
+        <div style="font-weight:600">${it.title}</div>
+        <div class="muted" style="font-size:12px">${it.type} · 진행률 ${it.progress}%</div>
+      </div>
+      <div><span class="pill ${pillCls.split(' ')[1]}">${it.type}</span></div>
+      <div>${fmtDateTime(it.due)}</div>
+      <div><span class="${pillCls}">${fmtRemain(it.due)}</span></div>
     `;
-    row.onclick = () => openDrawer(x);
-    rowsEl.appendChild(row);
+    row.addEventListener('click',(e)=>{
+      if(e.target.tagName==='INPUT') return; // ignore checkbox
+      openDetail(it.id);
+    });
+    wrap.appendChild(row);
   });
 }
 
-/* Right buckets */
-function fillSide() {
-  const tList = document.getElementById("todayList");
-  const sList = document.getElementById("soonList");
-  const lList = document.getElementById("lateList");
-  [tList, sList, lList].forEach((n) => (n.innerHTML = ""));
+function renderBuckets(){
+  const todayWrap = $('#todayList');
+  const soonWrap  = $('#soonList');
+  const lateWrap  = $('#lateList');
+  todayWrap.innerHTML = soonWrap.innerHTML = lateWrap.innerHTML = '';
 
-  const todayStr = new Date().toDateString();
-  State.data.forEach((x) => {
-    const h = hoursLeft(x._due);
-    const item = (cls) => `
-      <div class="task ${cls}">
-        <div class="left">
-          <span class="badge">${x.subject}</span>
-          <div>
-            <div>${x.title}</div>
-            <div class="when">${fmtDateLocal(x._due)} · ${x.type || "-"}</div>
-          </div>
-        </div>
-        <button class="btn" onclick="openDrawerFromSide('${
-          x.id
-        }')">상세</button>
-      </div>`;
-    if (h < 0) lList.insertAdjacentHTML("beforeend", item("late"));
-    else if (x._due.toDateString() === todayStr)
-      tList.insertAdjacentHTML("beforeend", item(""));
-    else if (h <= 48) sList.insertAdjacentHTML("beforeend", item("warn"));
+  const start = new Date(); start.setHours(0,0,0,0);
+  const end   = new Date(); end.setHours(23,59,59,999);
+
+  const pushItem = (wrap, it)=>{
+    const el = document.createElement('div');
+    el.className='item';
+    el.innerHTML = `
+      <div class="ttl">${it.title}</div>
+      <div class="muted">${it.subj} · ${fmtDateTime(it.due)} · ${fmtRemain(it.due)}</div>
+    `;
+    el.addEventListener('click',()=>openDetail(it.id));
+    wrap.appendChild(el);
+  };
+
+  state.items.forEach(it=>{
+    const due = new Date(it.due);
+    if(due<new Date()) { pushItem(lateWrap, it); return; }
+    const within48 = msRemaining(it.due) <= 48*3600000;
+    if(due>=start && due<=end) pushItem(todayWrap, it);
+    else if(within48) pushItem(soonWrap, it);
   });
-}
-window.openDrawerFromSide = (id) => {
-  const x = State.data.find((v) => String(v.id) === String(id));
-  if (x) openDrawer(x);
-};
 
-/* ===================== Boot ===================== */
-(async function boot() {
-  try {
-    await loadMe();
-    await loadData();
-    render();
-    fillSide();
-  } catch (e) {
-    console.error(e);
-    toast("데이터 로드 실패");
-  }
-  // 1분마다 남은 시간만 갱신되어 보이도록 재렌더
-  setInterval(() => {
-    render();
-    fillSide();
-  }, 60 * 1000);
-})();
+  if(!todayWrap.children.length) todayWrap.innerHTML = `<div class="item">등록된 항목이 없습니다.</div>`;
+  if(!soonWrap.children.length)  soonWrap.innerHTML  = `<div class="item">없음</div>`;
+  if(!lateWrap.children.length)  lateWrap.innerHTML  = `<div class="item">없음</div>`;
+}
+
+/* ============================ Detail Drawer ============================ */
+function openDetail(id){
+  const it = state.items.find(x=>x.id===id); if(!it) return;
+  $('#dwTitle').textContent = it.title;
+  $('#dwSubj').textContent  = it.subj;
+  $('#dwType').textContent  = it.type;
+  $('#dwDue').textContent   = `${fmtDateTime(it.due)} (${fmtRemain(it.due)})`;
+  $('#dwStatus').textContent= it.status;
+  $('#dwProg').style.width  = `${it.progress}%`;
+
+  const ul = $('#dwList'); ul.innerHTML = '';
+  it.checklist.forEach((txt, idx)=>{
+    const li = document.createElement('li');
+    const idc = `dwchk-${id}-${idx}`;
+    li.innerHTML = `
+      <input id="${idc}" type="checkbox" ${it.checks[idx] ? 'checked':''}/>
+      <label for="${idc}" style="flex:1">${txt}</label>
+    `;
+    li.querySelector('input').addEventListener('change',(e)=>{
+      it.checks[idx] = e.target.checked ? 1 : 0;
+      const total = it.checklist.length;
+      const done  = it.checks.filter(v=>v).length;
+      it.progress = Math.round(done/total*100);
+      renderRows(); renderBuckets();
+    });
+    ul.appendChild(li);
+  });
+
+  // 관리자/리더 동작 버튼 (상태 다음 단계) — 표시 자체는 모두 가능
+  const act = $('#dwActions'); act.innerHTML='';
+  const btn = document.createElement('button');
+  btn.className='btn';
+  btn.textContent='상태: 다음 단계';
+  btn.addEventListener('click',()=>{
+    const order = ["미제출","진행중","제출","채점중","완료"];
+    const i = Math.max(0, order.indexOf(it.status));
+    it.status = order[Math.min(order.length-1, i+1)];
+    toast(`상태가 '${it.status}'(으)로 변경되었습니다`);
+    openDetail(id); renderRows(); renderBuckets();
+  });
+  act.appendChild(btn);
+
+  $('#drawer').classList.add('show');
+}
+function closeDetail(){ $('#drawer').classList.remove('show'); }
+
+/* ============================ Add Drawer ============================ */
+function openAdd(){ $('#addDrawer').classList.add('show'); }
+function closeAdd(){ $('#addDrawer').classList.remove('show'); }
+
+function createFromAdd(){
+  const subj = $('#adSubject').value.trim();
+  const title= $('#adTitle').value.trim();
+  const type = $('#adType').value.trim();
+  const due  = $('#adDue').value;
+  const status=$('#adStatus').value.trim();
+  const prog = Math.max(0, Math.min(100, parseInt($('#adProg').value||'0',10)));
+  const list = $('#adList').value.split('\n').map(s=>s.trim()).filter(Boolean);
+
+  if(!title || !due){ toast('제목/마감은 필수'); return; }
+
+  state.items.push({
+    id:'n'+(Date.now().toString(36)),
+    subj, title, type, due, status, progress:prog,
+    checklist:list, checks:list.map(()=>0)
+  });
+  closeAdd();
+  renderRows(); renderBuckets();
+  toast('새 과제가 등록되었습니다');
+}
+
+/* ============================ Events ============================ */
+function setupEvents(){
+  // Tabs
+  $$('#tabs .tab').forEach(btn=>{
+    btn.addEventListener('click', (e)=>{
+      $$('#tabs .tab').forEach(b=>b.classList.remove('is-active'));
+      btn.classList.add('is-active');
+      state.subject = btn.dataset.subj || 'ALL';
+
+      // ripple
+      const wrap = btn.querySelector('.ripple') || btn.appendChild(Object.assign(document.createElement('div'),{className:'ripple'}));
+      const span = document.createElement('span');
+      const rect = btn.getBoundingClientRect();
+      span.style.left = (e.clientX - rect.left) + 'px';
+      span.style.top  = (e.clientY - rect.top)  + 'px';
+      wrap.appendChild(span);
+      span.addEventListener('animationend', ()=> span.remove(), {once:true});
+
+      renderRows(); renderBuckets();
+    });
+  });
+
+  // Filters
+  $('#q').addEventListener('input', (e)=>{ state.query=e.target.value; renderRows(); });
+  $('#status').addEventListener('change', (e)=>{ state.status=e.target.value; renderRows(); });
+  $('#sort').addEventListener('change', (e)=>{ state.sort=e.target.value; renderRows(); });
+  $('#clear').addEventListener('click', ()=>{
+    state.query=''; state.status=''; state.sort='due';
+    $('#q').value=''; $('#status').value=''; $('#sort').value='due';
+    renderRows();
+  });
+
+  // Drawers
+  $('#dwClose').addEventListener('click', closeDetail);
+  $('#drawer').addEventListener('click', (e)=>{ if(e.target.id==='drawer') closeDetail(); });
+
+  // Add drawer (버튼 자체는 admin만 보이도록 renderHeader에서 제어)
+  $('#addBtn').addEventListener('click', openAdd);
+  $('#addCancel').addEventListener('click', closeAdd);
+  $('#addCreate').addEventListener('click', createFromAdd);
+  $('#addDrawer').addEventListener('click', (e)=>{ if(e.target.id==='addDrawer') closeAdd(); });
+}
+
+/* ============================ Init ============================ */
+function init(){
+  renderHeader();
+  renderRows();
+  renderBuckets();
+  setupEvents();
+}
+document.addEventListener('DOMContentLoaded', init);
