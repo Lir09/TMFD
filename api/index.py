@@ -1,4 +1,5 @@
 from app import app
+from asgiref.wsgi import WsgiToAsgi
 
-# Vercel은 handler라는 이름의 변수를 찾음
-handler = app
+# Vercel은 handler를 찾음
+handler = WsgiToAsgi(app)
