@@ -5,3 +5,4 @@ requests==2.32.3
 python-dotenv==1.0.1
 psycopg2-binary==2.9.9
 asgiref==3.8.1
+gunicorn==23.0.0
