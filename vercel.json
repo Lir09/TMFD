@@ -1,5 +1,5 @@
 {
   "version": 2,
-  "builds": [{ "src": "api/index.py", "use": "@vercel/python" }],
+  "builds": [{ "src": "api/index.py", "use": "vercel-python-wsgi" }],
   "routes": [{ "src": "/(.*)", "dest": "/api/index.py" }]
 }
