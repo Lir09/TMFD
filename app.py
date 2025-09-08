@@ -36,58 +36,58 @@ def get_db():
     return conn
 
 
-def init_db():
-    conn = get_db(); c = conn.cursor()
+# def init_db():
+#     conn = get_db(); c = conn.cursor()
 
-    # 1. 학급 테이블 (users에서 참조하므로 제일 먼저 생성)
-    c.execute("""
-        CREATE TABLE IF NOT EXISTS classes (
-            id SERIAL PRIMARY KEY,
-            name TEXT UNIQUE NOT NULL,
-            grade TEXT
-        )
-    """)
+#     # 1. 학급 테이블 (users에서 참조하므로 제일 먼저 생성)
+#     c.execute("""
+#         CREATE TABLE IF NOT EXISTS classes (
+#             id SERIAL PRIMARY KEY,
+#             name TEXT UNIQUE NOT NULL,
+#             grade TEXT
+#         )
+#     """)
 
-    # 2. 사용자 테이블 (class_id → classes.id 외래키)
-    c.execute("""
-        CREATE TABLE IF NOT EXISTS users (
-            email TEXT PRIMARY KEY,
-            name TEXT,
-            phone TEXT,
-            password_hash BYTEA,
-            mileage INTEGER DEFAULT 2500,
-            role TEXT DEFAULT 'student',
-            class_id INTEGER REFERENCES classes(id) ON DELETE SET NULL
-        )
-    """)
+#     # 2. 사용자 테이블 (class_id → classes.id 외래키)
+#     c.execute("""
+#         CREATE TABLE IF NOT EXISTS users (
+#             email TEXT PRIMARY KEY,
+#             name TEXT,
+#             phone TEXT,
+#             password_hash BYTEA,
+#             mileage INTEGER DEFAULT 2500,
+#             role TEXT DEFAULT 'student',
+#             class_id INTEGER REFERENCES classes(id) ON DELETE SET NULL
+#         )
+#     """)
 
-    # 3. 활동 테이블 (users.email 참조)
-    c.execute("""
-        CREATE TABLE IF NOT EXISTS activities (
-            id SERIAL PRIMARY KEY,
-            email TEXT REFERENCES users(email) ON DELETE CASCADE,
-            title TEXT,
-            points INTEGER,
-            visited_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
-        )
-    """)
+#     # 3. 활동 테이블 (users.email 참조)
+#     c.execute("""
+#         CREATE TABLE IF NOT EXISTS activities (
+#             id SERIAL PRIMARY KEY,
+#             email TEXT REFERENCES users(email) ON DELETE CASCADE,
+#             title TEXT,
+#             points INTEGER,
+#             visited_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+#         )
+#     """)
 
-    # 4. 일정 테이블 (users.email 참조)
-    c.execute("""
-        CREATE TABLE IF NOT EXISTS events (
-            id SERIAL PRIMARY KEY,
-            email TEXT NOT NULL REFERENCES users(email) ON DELETE CASCADE,
-            ymd DATE NOT NULL,
-            title TEXT NOT NULL,
-            time TEXT,
-            created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
-        )
-    """)
+#     # 4. 일정 테이블 (users.email 참조)
+#     c.execute("""
+#         CREATE TABLE IF NOT EXISTS events (
+#             id SERIAL PRIMARY KEY,
+#             email TEXT NOT NULL REFERENCES users(email) ON DELETE CASCADE,
+#             ymd DATE NOT NULL,
+#             title TEXT NOT NULL,
+#             time TEXT,
+#             created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+#         )
+#     """)
 
-    conn.commit(); conn.close()
+#     conn.commit(); conn.close()
 
 
-init_db()
+# init_db()
 
 
 def is_valid_email(email: str) -> bool:
@@ -1084,5 +1084,13 @@ def kakao_skill_assessments():
 
 # ---------------------- 엔트리 포인트 ----------------------
 if __name__ == '__main__':
-    app.run(host="0.0.0.0", port=5000, debug=True)
+    # 로컬 개발 환경에서만 DB 초기화
+    # init_db()
+    ensure_admin_schema()
+    ensure_assessment_schema()
+    ensure_notes_schema()
+    ensure_files_schema()
+    ensure_notify_schema()
+    ensure_pair_schema()
 
+    app.run(host="0.0.0.0", port=5000, debug=True)
