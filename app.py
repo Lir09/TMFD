@@ -223,16 +223,24 @@ def login():
             return render_template('login.html', error="존재하지 않는 이메일입니다.")
         if not user['password_hash']:
             return render_template('login.html', error="비밀번호 데이터가 손상되었습니다. 다시 회원가입을 진행해 주세요.")
-        if bcrypt.checkpw(password.encode('utf-8'), user['password_hash']):
+
+        # memoryview → bytes 변환 필수
+        hashed_pw = bytes(user['password_hash'])
+
+        if bcrypt.checkpw(password.encode("utf-8"), hashed_pw):
+            # 로그인 성공
             session['user'] = user['name']
             session['email'] = user['email']
             if remember == "on":
                 session.permanent = True
                 app.permanent_session_lifetime = timedelta(days=7)
+
             if user['email'] == "admin@admin.com":
                 return redirect(url_for('admin'))
             return redirect(url_for('index'))
+
         return render_template('login.html', error="이메일 또는 비밀번호가 올바르지 않습니다.")
+
     if session.get('user') and session.get('email'):
         return redirect(url_for('index'))
     return render_template('login.html')
