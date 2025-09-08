@@ -11,8 +11,7 @@ load_dotenv()
 app = Flask(__name__)
 app.secret_key = os.getenv('APP_SECRET', 'thisIsTmfd')
 
-BASE_DIR = os.path.abspath(os.path.dirname(__file__))
-UPLOAD_ROOT = os.path.join(BASE_DIR, "uploads")
+UPLOAD_ROOT = os.path.join("/tmp", "uploads")
 os.makedirs(UPLOAD_ROOT, exist_ok=True)
 
 ALLOWED_EXTS = {
@@ -27,7 +26,13 @@ app.config["MAX_CONTENT_LENGTH"] = MAX_CONTENT_LENGTH
 
 # ---------------------- DB 헬퍼 ----------------------
 def get_db():
-    conn = psycopg2.connect(os.getenv("DATABASE_URL"), cursor_factory=psycopg2.extras.DictCursor)
+    dsn = os.getenv("DATABASE_URL")
+    if not dsn:
+        raise RuntimeError("DATABASE_URL not set")
+    # psycopg2는 postgresql:// 대신 postgres:// 를 기대할 수 있음
+    if dsn.startswith("postgresql://"):
+        dsn = dsn.replace("postgresql://", "postgres://", 1)
+    conn = psycopg2.connect(dsn, cursor_factory=psycopg2.extras.DictCursor)
     return conn
 
 
@@ -1079,4 +1084,13 @@ def kakao_skill_assessments():
 
 # ---------------------- 엔트리 포인트 ----------------------
 if __name__ == '__main__':
+    # 로컬 개발 환경에서만 초기화 실행
+    init_db()
+    ensure_admin_schema()
+    ensure_assessment_schema()
+    ensure_notes_schema()
+    ensure_files_schema()
+    ensure_notify_schema()
+    ensure_pair_schema()
+
     app.run(host="0.0.0.0", port=5000, debug=True)
