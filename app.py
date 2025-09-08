@@ -1084,13 +1084,5 @@ def kakao_skill_assessments():
 
 # ---------------------- 엔트리 포인트 ----------------------
 if __name__ == '__main__':
-    # 로컬 개발 환경에서만 초기화 실행
-    init_db()
-    ensure_admin_schema()
-    ensure_assessment_schema()
-    ensure_notes_schema()
-    ensure_files_schema()
-    ensure_notify_schema()
-    ensure_pair_schema()
-
     app.run(host="0.0.0.0", port=5000, debug=True)
+
