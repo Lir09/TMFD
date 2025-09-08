@@ -369,6 +369,48 @@ def admin_users():
     conn.close()
     return jsonify(rows)
 
+@app.route('/admin/api/users/assign', methods=['POST'])
+@login_required
+@admin_required
+def admin_assign_user():
+    data = request.get_json(force=True) or {}
+    email = (data.get("email") or "").strip().lower()
+    role = (data.get("role") or "student").strip()
+    class_id = data.get("class_id")
+
+    if not email:
+        return jsonify({"error": "email 필수"}), 400
+    if role not in ("student", "leader"):
+        return jsonify({"error": "잘못된 role"}), 400
+
+    conn = get_db(); c = conn.cursor()
+    c.execute("UPDATE users SET role=%s, class_id=%s WHERE email=%s",
+              (role, class_id, email))
+    conn.commit(); conn.close()
+    return jsonify({"ok": True})
+
+
+@app.route('/admin/api/classes/<int:cid>/assign', methods=['POST'])
+@login_required
+@admin_required
+def admin_assign_class(cid):
+    data = request.get_json(force=True) or {}
+    emails = data.get("emails") or []
+    if len(emails) > 2:
+        return jsonify({"error": "반장은 최대 2명"}), 409
+    if not class_exists(cid):
+        return jsonify({"error": "존재하지 않는 학급"}), 404
+
+    conn = get_db(); c = conn.cursor()
+    # 기존 leader 초기화
+    c.execute("UPDATE users SET role='student' WHERE class_id=%s AND role='leader'", (cid,))
+    # 새 leader 지정
+    for em in emails:
+        c.execute("UPDATE users SET role='leader' WHERE email=%s AND class_id=%s", (em, cid))
+    conn.commit(); conn.close()
+    return jsonify({"ok": True})
+
+
 @app.route('/admin/api/users/delete', methods=['POST'])
 @login_required
 @admin_required
