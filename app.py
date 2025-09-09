@@ -1131,6 +1131,36 @@ def kakao_skill_assessments():
 
     return jsonify(_kakao_list_card("수행평가 · 남은시간", items))
 
+@app.errorhandler(Exception)
+def handle_error(e):
+    return {
+        "version": "2.0",
+        "template": {
+            "outputs": [
+                {"simpleText": {"text": f"서버 에러: {type(e).__name__} {str(e)}"}}
+            ]
+        }
+    }, 200
+
+@app.route('/api/assessments/<int:aid>', methods=['PATCH'])
+@login_required
+def update_assessment(aid):
+    data = request.get_json(force=True) or {}
+    conn = get_db(); c = conn.cursor()
+    fields, params = [], []
+    if "status" in data:
+        fields.append("status=%s"); params.append(data["status"])
+    if "progress" in data:
+        fields.append("progress=%s"); params.append(data["progress"])
+    if "checklist" in data:
+        fields.append("checklist=%s"); params.append(json.dumps(data["checklist"]))
+    if not fields:
+        return jsonify({"error":"no fields"}), 400
+    params.append(aid)
+    c.execute(f"UPDATE assessments SET {','.join(fields)} WHERE id=%s", params)
+    conn.commit(); conn.close()
+    return jsonify({"ok":True})
+
 
 # ---------------------- 엔트리 포인트 ----------------------
 if __name__ == '__main__':
