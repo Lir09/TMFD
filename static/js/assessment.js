@@ -8,10 +8,34 @@ const state = {
   items: [],
 };
 
-/* ============================ Helpers (동일) ============================ */
+/* ============================ Helpers ============================ */
 const $ = (q, root = document) => root.querySelector(q);
 const $$ = (q, root = document) => Array.from(root.querySelectorAll(q));
-// ... fmtDateTime, msRemaining, fmtRemain, pillFor, toast 그대로 둬도 됨 ...
+
+function fmtDateTime(iso) {
+  const d = new Date(iso);
+  return d.toLocaleString("ko-KR", { dateStyle: "short", timeStyle: "short" });
+}
+
+function msRemaining(iso) {
+  return new Date(iso).getTime() - Date.now();
+}
+
+function fmtRemain(iso) {
+  const ms = msRemaining(iso);
+  if (ms < 0) return "지남";
+  const h = Math.floor(ms / 1000 / 60 / 60);
+  const d = Math.floor(h / 24);
+  if (d > 0) return `${d}일 ${h % 24}시간`;
+  return `${h}시간`;
+}
+
+function toast(msg) {
+  const el = $("#toast");
+  el.textContent = msg;
+  el.classList.add("show");
+  setTimeout(() => el.classList.remove("show"), 2500);
+}
 
 /* ============================ 서버 통신 ============================ */
 async function fetchUser() {
@@ -36,19 +60,97 @@ async function fetchAssessments() {
     status: it.status,
     progress: it.progress,
     checklist: it.checklist || [],
-    checks: (it.checklist || []).map(() => 0), // 서버 반영할거면 status 저장 필요
+    checks: (it.checklist || []).map(() => 0),
   }));
 }
 
-/* ============================ Render (동일) ============================ */
-// renderHeader, filteredItems, renderRows, renderBuckets, openDetail 등 그대로 두되
-// openDetail에서 상태 변경/체크리스트 수정 → 서버 PATCH 호출 추가
-
 async function updateStatus(id, newStatus) {
   await fetch(`/api/assessments`, {
-    method: "POST", // 서버에서 PATCH 구현시 PATCH로 바꾸기
+    method: "POST", // 서버에서 PATCH 구현 시 PATCH로 바꾸기
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify({ id, status: newStatus }),
+  });
+}
+
+/* ============================ Render ============================ */
+function renderHeader() {
+  const today = new Date();
+  $("#today").textContent = today.toLocaleDateString("ko-KR", {
+    weekday: "long",
+    month: "long",
+    day: "numeric",
+  });
+
+  const badge = $("#roleBadge");
+  if (state.role === "admin" || state.role === "leader") {
+    badge.textContent = state.role;
+    badge.classList.remove("hidden");
+  }
+}
+
+function filteredItems() {
+  return state.items
+    .filter((it) => state.subject === "ALL" || it.subj === state.subject)
+    .filter(
+      (it) =>
+        !state.query ||
+        it.title.includes(state.query) ||
+        it.subj.includes(state.query)
+    )
+    .filter((it) => !state.status || it.status === state.status)
+    .sort((a, b) => {
+      if (state.sort === "due") return new Date(a.due) - new Date(b.due);
+      if (state.sort === "remaining")
+        return msRemaining(a.due) - msRemaining(b.due);
+      if (state.sort === "progress") return b.progress - a.progress;
+      return 0;
+    });
+}
+
+function renderRows() {
+  const rows = $("#rows");
+  rows.innerHTML = "";
+  const items = filteredItems();
+  if (items.length === 0) {
+    $("#empty").classList.remove("hidden");
+  } else {
+    $("#empty").classList.add("hidden");
+  }
+  items.forEach((it) => {
+    const div = document.createElement("div");
+    div.className = "row";
+    div.innerHTML = `
+      <div><input type="checkbox"></div>
+      <div>${it.subj}</div>
+      <div>${it.title}</div>
+      <div>${it.type}</div>
+      <div>${fmtDateTime(it.due)}</div>
+      <div>${fmtRemain(it.due)}</div>
+    `;
+    div.addEventListener("click", (e) => {
+      if (e.target.tagName === "INPUT") return;
+      openDetail(it.id);
+    });
+    rows.appendChild(div);
+  });
+}
+
+function renderBuckets() {
+  const todayList = $("#todayList");
+  const soonList = $("#soonList");
+  const lateList = $("#lateList");
+  todayList.innerHTML = soonList.innerHTML = lateList.innerHTML = "";
+
+  const now = Date.now();
+  state.items.forEach((it) => {
+    const ms = msRemaining(it.due);
+    const el = document.createElement("div");
+    el.textContent = `${it.subj} - ${it.title} (${fmtRemain(it.due)})`;
+
+    if (ms < 0) lateList.appendChild(el);
+    else if (ms < 1000 * 60 * 60 * 48) soonList.appendChild(el);
+    else if (new Date(it.due).getDate() === new Date().getDate())
+      todayList.appendChild(el);
   });
 }
 
@@ -79,9 +181,8 @@ function openDetail(id) {
       renderRows();
       renderBuckets();
 
-      // 서버 반영 (PATCH 필요)
       await fetch(`/api/assessments`, {
-        method: "POST", // 나중에 PATCH 엔드포인트 추가 시 수정
+        method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ id: it.id, progress: it.progress }),
       });
@@ -102,7 +203,6 @@ function openDetail(id) {
       toast(`상태가 '${it.status}'(으)로 변경되었습니다`);
       renderRows();
       renderBuckets();
-      // 서버 반영
       await updateStatus(it.id, it.status);
       openDetail(id);
     });
@@ -154,6 +254,75 @@ async function createFromAdd() {
   } else {
     toast("등록 실패");
   }
+}
+
+function closeAdd() {
+  $("#addDrawer").classList.remove("show");
+  $("#adTitle").value = "";
+  $("#adDue").value = "";
+  $("#adList").value = "";
+  $("#adProg").value = "0";
+}
+
+/* ============================ Events ============================ */
+function setupEvents() {
+  // 필터
+  $("#q").addEventListener("input", (e) => {
+    state.query = e.target.value.trim();
+    renderRows();
+  });
+  $("#status").addEventListener("change", (e) => {
+    state.status = e.target.value;
+    renderRows();
+  });
+  $("#sort").addEventListener("change", (e) => {
+    state.sort = e.target.value;
+    renderRows();
+  });
+  $("#clear").addEventListener("click", () => {
+    state.query = "";
+    state.status = "";
+    $("#q").value = "";
+    $("#status").value = "";
+    renderRows();
+  });
+
+  // 탭
+  $$("#tabs .tab").forEach((btn) => {
+    btn.addEventListener("click", () => {
+      $$("#tabs .tab").forEach((b) => b.classList.remove("is-active"));
+      btn.classList.add("is-active");
+      state.subject = btn.dataset.subj;
+      renderRows();
+    });
+  });
+
+  // 디테일 닫기
+  $("#dwClose").addEventListener("click", () => {
+    $("#drawer").classList.remove("show");
+  });
+
+  // 추가 drawer
+  const addBtn = $("#addBtn");
+  const addDrawer = $("#addDrawer");
+  const addCancel = $("#addCancel");
+  const addCreate = $("#addCreate");
+
+  if (state.role === "admin" || state.role === "leader") {
+    addBtn.classList.remove("hidden");
+  }
+
+  addBtn.addEventListener("click", () => {
+    addDrawer.classList.add("show");
+  });
+
+  addCancel.addEventListener("click", () => {
+    closeAdd();
+  });
+
+  addCreate.addEventListener("click", () => {
+    createFromAdd();
+  });
 }
 
 /* ============================ Init ============================ */
