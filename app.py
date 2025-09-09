@@ -9,7 +9,7 @@ from dotenv import load_dotenv
 # ---------------------- 초기 설정 ----------------------
 load_dotenv()
 app = Flask(__name__)
-app.secret_key = os.getenv('APP_SECRET', 'thisIsTmfd')
+app.secret_key = os.getenv('APP_SECRET')
 
 UPLOAD_ROOT = os.path.join("/tmp", "uploads")
 os.makedirs(UPLOAD_ROOT, exist_ok=True)
