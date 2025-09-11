@@ -1173,3 +1173,43 @@ if __name__ == '__main__':
     ensure_pair_schema()
 
     app.run(host="0.0.0.0", port=5000, debug=True)
+
+@app.route('/api/user-info')
+def get_user_info():
+    if 'email' in session:
+        return jsonify({
+            'email': session['email'],
+            'username': session.get('username', ''),
+            'is_admin': session['email'] == 'otaejin79@gmail.com'
+        })
+    return jsonify({'error': 'Not logged in'}), 401
+
+@app.route('/api/assignments', methods=['POST'])
+def add_assignment():
+    if session.get('email') != 'otaejin79@gmail.com':
+        return jsonify({'success': False, 'message': '관리자 권한이 필요합니다'}), 403
+    
+    # 과제 추가 로직
+    subject = request.form.get('subject')
+    title = request.form.get('title')
+    assignment_type = request.form.get('type')
+    due_date = request.form.get('due_date')
+    description = request.form.get('description', '')
+    
+    # 데이터베이스에 저장하는 코드 추가
+    # ... 
+    
+    return jsonify({'success': True, 'message': '과제가 추가되었습니다'})
+
+@app.route('/api/assignments/delete', methods=['POST'])
+def delete_assignments():
+    if session.get('email') != 'otaejin79@gmail.com':
+        return jsonify({'success': False, 'message': '관리자 권한이 필요합니다'}), 403
+    
+    ids = request.json.get('ids', [])
+    
+    # 데이터베이스에서 삭제하는 코드 추가
+    # ...
+    
+    return jsonify({'success': True, 'message': '과제가 삭제되었습니다'})
+

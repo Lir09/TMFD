@@ -8,17 +8,66 @@
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Noto+Sans+KR:wght@400;500;700&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="/static/css/assessment.css" />
+  <style>
+    /* 기존 스타일들 + 관리자 버튼 추가 */
+    .admin-controls {
+      display: none; /* 기본적으로 숨김 */
+      padding: 16px;
+      background: #f8f9fa;
+      border: 1px solid #e9ecef;
+      border-radius: 12px;
+      margin-bottom: 20px;
+      gap: 12px;
+      align-items: center;
+    }
+    .admin-controls.show {
+      display: flex; /* 관리자일 때 보임 */
+    }
+    .btn-admin {
+      background: #5b82d8;
+      color: white;
+      border: none;
+      border-radius: 8px;
+      padding: 10px 20px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: background 0.2s;
+    }
+    .btn-admin:hover {
+      background: #4a6ec7;
+    }
+    .btn-danger {
+      background: #dc3545;
+    }
+    .btn-danger:hover {
+      background: #c82333;
+    }
+  </style>
 </head>
 <body>
   <div class="container">
     <!-- Header -->
     <div class="page-head">
       <div>
-        <div class="page-title">수행평가 관리 <span id="roleBadge" class="role-badge hidden"></span></div>
+        <a href="/" style="text-decoration:none;color:inherit;cursor:pointer;">
+          <div class="page-title">수행평가 관리 <span id="roleBadge" class="role-badge hidden"></span></div>
+        </a>
         <div class="page-sub">상단 과목 탭 선택 → 아래에서 과제 현황 관리</div>
-        <div class="title-rule" aria-hidden="true"></div>
       </div>
       <div id="today"></div>
+    </div>
+
+    <!-- 관리자 전용 컨트롤 -->
+    <div id="adminControls" class="admin-controls">
+      <button class="btn-admin" onclick="showAddAssignmentModal()">
+        📝 새 과제 추가
+      </button>
+      <button class="btn-admin btn-danger" onclick="deleteSelectedAssignments()">
+        🗑️ 선택 항목 삭제
+      </button>
+      <span style="color: #666; font-size: 14px;">
+        관리자 전용 기능
+      </span>
     </div>
 
     <!-- Tabs -->
@@ -148,8 +197,146 @@
     </div>
   </div>
 
+  <!-- 과제 추가 모달 -->
+  <div id="addAssignmentModal" class="modal" style="display: none;">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h3>새 과제 추가</h3>
+        <button onclick="closeAddAssignmentModal()">&times;</button>
+      </div>
+      <form id="addAssignmentForm">
+        <div class="form-group">
+          <label>과목</label>
+          <select name="subject" required>
+            <option value="">선택하세요</option>
+            <option value="국어">국어</option>
+            <option value="수학">수학</option>
+            <option value="영어">영어</option>
+            <option value="사회">사회</option>
+            <option value="과학">과학</option>
+            <option value="한국사">한국사</option>
+            <option value="정보">정보</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label>과제명</label>
+          <input type="text" name="title" required>
+        </div>
+        <div class="form-group">
+          <label>유형</label>
+          <select name="type" required>
+            <option value="발표">발표</option>
+            <option value="보고서">보고서</option>
+            <option value="실험">실험</option>
+            <option value="코딩">코딩</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label>마감일</label>
+          <input type="datetime-local" name="due_date" required>
+        </div>
+        <div class="form-group">
+          <label>설명 (선택)</label>
+          <textarea name="description" rows="3"></textarea>
+        </div>
+        <div class="modal-footer">
+          <button type="button" onclick="closeAddAssignmentModal()">취소</button>
+          <button type="submit" class="btn-admin">추가하기</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
   <div class="toast" id="toast"></div>
 
   <script src="/static/js/assessment.js"></script>
+  <script>
+    // 사용자 역할 확인 및 관리자 UI 표시
+    function checkUserRole() {
+      // 서버에서 사용자 정보를 가져오거나 세션에서 확인
+      fetch('/api/user-info')
+        .then(response => response.json())
+        .then(data => {
+          if (data.email === 'otaejin79@gmail.com') {
+            document.getElementById('adminControls').classList.add('show');
+            document.getElementById('roleBadge').textContent = '관리자';
+            document.getElementById('roleBadge').classList.remove('hidden');
+          }
+        })
+        .catch(error => {
+          console.log('사용자 정보 확인 실패:', error);
+        });
+    }
+
+    // 과제 추가 모달 표시
+    function showAddAssignmentModal() {
+      document.getElementById('addAssignmentModal').style.display = 'block';
+    }
+
+    // 과제 추가 모달 닫기
+    function closeAddAssignmentModal() {
+      document.getElementById('addAssignmentModal').style.display = 'none';
+      document.getElementById('addAssignmentForm').reset();
+    }
+
+    // 과제 추가 폼 제출
+    document.getElementById('addAssignmentForm').addEventListener('submit', function(e) {
+      e.preventDefault();
+      const formData = new FormData(this);
+      
+      fetch('/api/assignments', {
+        method: 'POST',
+        body: formData
+      })
+      .then(response => response.json())
+      .then(data => {
+        if (data.success) {
+          alert('과제가 성공적으로 추가되었습니다.');
+          closeAddAssignmentModal();
+          location.reload(); // 페이지 새로고침
+        } else {
+          alert('과제 추가 실패: ' + data.message);
+        }
+      })
+      .catch(error => {
+        alert('오류가 발생했습니다: ' + error.message);
+      });
+    });
+
+    // 선택된 과제들 삭제
+    function deleteSelectedAssignments() {
+      const selectedCheckboxes = document.querySelectorAll('input[type="checkbox"]:checked');
+      if (selectedCheckboxes.length === 0) {
+        alert('삭제할 과제를 선택해주세요.');
+        return;
+      }
+      
+      if (confirm(`선택된 ${selectedCheckboxes.length}개의 과제를 삭제하시겠습니까?`)) {
+        const ids = Array.from(selectedCheckboxes).map(cb => cb.dataset.id);
+        
+        fetch('/api/assignments/delete', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify({ids: ids})
+        })
+        .then(response => response.json())
+        .then(data => {
+          if (data.success) {
+            alert('선택된 과제가 삭제되었습니다.');
+            location.reload();
+          } else {
+            alert('삭제 실패: ' + data.message);
+          }
+        });
+      }
+    }
+
+    // 페이지 로드 시 사용자 역할 확인
+    document.addEventListener('DOMContentLoaded', function() {
+      checkUserRole();
+    });
+  </script>
 </body>
 </html>
