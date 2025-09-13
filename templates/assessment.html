@@ -8,41 +8,6 @@
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Noto+Sans+KR:wght@400;500;700&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="/static/css/assessment.css" />
-  <style>
-    /* 기존 스타일들 + 관리자 버튼 추가 */
-    .admin-controls {
-      display: none; /* 기본적으로 숨김 */
-      padding: 16px;
-      background: #f8f9fa;
-      border: 1px solid #e9ecef;
-      border-radius: 12px;
-      margin-bottom: 20px;
-      gap: 12px;
-      align-items: center;
-    }
-    .admin-controls.show {
-      display: flex; /* 관리자일 때 보임 */
-    }
-    .btn-admin {
-      background: #5b82d8;
-      color: white;
-      border: none;
-      border-radius: 8px;
-      padding: 10px 20px;
-      font-weight: 600;
-      cursor: pointer;
-      transition: background 0.2s;
-    }
-    .btn-admin:hover {
-      background: #4a6ec7;
-    }
-    .btn-danger {
-      background: #dc3545;
-    }
-    .btn-danger:hover {
-      background: #c82333;
-    }
-  </style>
 </head>
 <body>
   <div class="container">
@@ -57,7 +22,7 @@
       <div id="today"></div>
     </div>
 
-    <!-- 관리자 전용 컨트롤 -->
+    <!-- 관리자 전용 컨트롤 (하나만 남김) -->
     <div id="adminControls" class="admin-controls">
       <button class="btn-admin" onclick="showAddAssignmentModal()">
         📝 새 과제 추가
@@ -98,7 +63,6 @@
       </select>
       <button class="btn" id="clear">필터 초기화</button>
       <span class="spacer"></span>
-      <button class="btn primary hidden" id="addBtn">과제 추가</button>
     </section>
 
     <!-- Main Grid -->
@@ -107,7 +71,7 @@
       <section class="card" aria-label="과제 현황">
         <div class="card-hd">과제 현황</div>
         <div class="card-bd">
-          <div class="hint">체크 → 일괄 작업(추가 예정). 행 클릭 → 상세 보기. ‘모든과목’ 탭에서 통합 검색/정렬 가능.</div>
+          <div class="hint">체크 → 일괄 작업(추가 예정). 행 클릭 → 상세 보기. '모든과목' 탭에서 통합 검색/정렬 가능.</div>
           <div class="list">
             <div class="row head" aria-hidden="true">
               <div>선택</div><div>과목</div><div>과제명</div><div>유형</div><div>마감</div><div>남은시간</div>
@@ -165,38 +129,6 @@
     </div>
   </div>
 
-  <!-- Add Drawer (admin only 표시) -->
-  <div class="drawer" id="addDrawer" role="dialog" aria-modal="true">
-    <div class="pane">
-      <header><div class="title">새 수행평가 추가</div></header>
-      <div class="body">
-        <div class="kv"><div class="muted">과목</div><div>
-          <select id="adSubject" class="select">
-            <option>국어</option><option>수학</option><option>영어</option><option>사회</option>
-            <option>과학</option><option>한국사</option><option>정보</option><option>과탐실</option>
-          </select>
-        </div></div>
-        <div class="kv"><div class="muted">제목</div><div><input id="adTitle" class="input" placeholder="과제 제목" /></div></div>
-        <div class="kv"><div class="muted">유형</div><div>
-          <select id="adType" class="select"><option>보고서</option><option>발표</option><option>실험</option><option>코딩</option><option>기타</option></select>
-        </div></div>
-        <div class="kv"><div class="muted">마감</div><div><input id="adDue" type="datetime-local" class="input" /></div></div>
-        <div class="kv"><div class="muted">상태</div><div>
-          <select id="adStatus" class="select"><option>미제출</option><option>진행중</option><option>제출</option><option>채점중</option><option>완료</option></select>
-        </div></div>
-        <div class="kv"><div class="muted">진행률</div><div><input id="adProg" type="number" min="0" max="100" value="0" class="input" style="max-width:120px" /> %</div></div>
-        <div>
-          <div class="muted" style="margin-bottom:6px">체크리스트(줄바꿈으로 구분)</div>
-          <textarea id="adList" class="input textarea" placeholder="예)\n자료조사\n초안 작성\n발표 슬라이드"></textarea>
-        </div>
-        <div style="display:flex;gap:8px;justify-content:flex-end;margin-top:12px">
-          <button class="btn" id="addCancel">취소</button>
-          <button class="btn primary" id="addCreate">등록</button>
-        </div>
-      </div>
-    </div>
-  </div>
-
   <!-- 과제 추가 모달 -->
   <div id="addAssignmentModal" class="modal" style="display: none;">
     <div class="modal-content">
@@ -248,12 +180,10 @@
   </div>
 
   <div class="toast" id="toast"></div>
-
   <script src="/static/js/assessment.js"></script>
   <script>
     // 사용자 역할 확인 및 관리자 UI 표시
     function checkUserRole() {
-      // 서버에서 사용자 정보를 가져오거나 세션에서 확인
       fetch('/api/user-info')
         .then(response => response.json())
         .then(data => {
@@ -293,7 +223,7 @@
         if (data.success) {
           alert('과제가 성공적으로 추가되었습니다.');
           closeAddAssignmentModal();
-          location.reload(); // 페이지 새로고침
+          location.reload();
         } else {
           alert('과제 추가 실패: ' + data.message);
         }

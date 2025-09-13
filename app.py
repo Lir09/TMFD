@@ -1174,42 +1174,39 @@ if __name__ == '__main__':
 
     app.run(host="0.0.0.0", port=5000, debug=True)
 
+def is_admin(email):
+    """관리자 권한 확인 함수"""
+    try:
+        conn = get_db()
+        c = conn.cursor()
+        c.execute("SELECT role FROM users WHERE email = %s", (email,))
+        result = c.fetchone()
+        conn.close()
+        return result and result['role'] == 'admin'
+    except:
+        # 데이터베이스 오류 시 이메일로 확인 (임시)
+        return email == 'otaejin79@gmail.com'
+
 @app.route('/api/user-info')
 def get_user_info():
     if 'email' in session:
+        email = session['email']
         return jsonify({
-            'email': session['email'],
+            'email': email,
             'username': session.get('username', ''),
-            'is_admin': session['email'] == 'otaejin79@gmail.com'
+            'is_admin': is_admin(email)
         })
     return jsonify({'error': 'Not logged in'}), 401
 
 @app.route('/api/assignments', methods=['POST'])
 def add_assignment():
-    if session.get('email') != 'otaejin79@gmail.com':
+    if not is_admin(session.get('email')):
         return jsonify({'success': False, 'message': '관리자 권한이 필요합니다'}), 403
-    
-    # 과제 추가 로직
-    subject = request.form.get('subject')
-    title = request.form.get('title')
-    assignment_type = request.form.get('type')
-    due_date = request.form.get('due_date')
-    description = request.form.get('description', '')
-    
-    # 데이터베이스에 저장하는 코드 추가
-    # ... 
-    
-    return jsonify({'success': True, 'message': '과제가 추가되었습니다'})
+    # ... 나머지 코드
 
 @app.route('/api/assignments/delete', methods=['POST'])
 def delete_assignments():
-    if session.get('email') != 'otaejin79@gmail.com':
+    if not is_admin(session.get('email')):
         return jsonify({'success': False, 'message': '관리자 권한이 필요합니다'}), 403
-    
-    ids = request.json.get('ids', [])
-    
-    # 데이터베이스에서 삭제하는 코드 추가
-    # ...
-    
-    return jsonify({'success': True, 'message': '과제가 삭제되었습니다'})
+    # ... 나머지 코드
 

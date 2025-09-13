@@ -325,6 +325,96 @@ function setupEvents() {
   });
 }
 
+// 사용자 역할 확인 및 관리자 UI 표시
+function checkUserRole() {
+  fetch('/api/user-info')
+    .then(response => response.json())
+    .then(data => {
+      if (data.email === 'otaejin79@gmail.com') {
+        document.getElementById('adminControls').classList.add('show');
+        document.getElementById('roleBadge').textContent = '관리자';
+        document.getElementById('roleBadge').classList.remove('hidden');
+      }
+    })
+    .catch(error => {
+      console.log('사용자 정보 확인 실패:', error);
+    });
+}
+
+// 과제 추가 모달 표시
+function showAddAssignmentModal() {
+  document.getElementById('addAssignmentModal').style.display = 'block';
+}
+
+// 과제 추가 모달 닫기
+function closeAddAssignmentModal() {
+  document.getElementById('addAssignmentModal').style.display = 'none';
+  document.getElementById('addAssignmentForm').reset();
+}
+
+// 과제 추가 폼 제출
+document.addEventListener('DOMContentLoaded', function() {
+  // 기존 DOMContentLoaded 이벤트에 추가
+  checkUserRole();
+  
+  // 과제 추가 폼 이벤트 리스너
+  const addForm = document.getElementById('addAssignmentForm');
+  if (addForm) {
+    addForm.addEventListener('submit', function(e) {
+      e.preventDefault();
+      const formData = new FormData(this);
+      
+      fetch('/api/assignments', {
+        method: 'POST',
+        body: formData
+      })
+      .then(response => response.json())
+      .then(data => {
+        if (data.success) {
+          alert('과제가 성공적으로 추가되었습니다.');
+          closeAddAssignmentModal();
+          location.reload();
+        } else {
+          alert('과제 추가 실패: ' + data.message);
+        }
+      })
+      .catch(error => {
+        alert('오류가 발생했습니다: ' + error.message);
+      });
+    });
+  }
+});
+
+// 선택된 과제들 삭제
+function deleteSelectedAssignments() {
+  const selectedCheckboxes = document.querySelectorAll('input[type="checkbox"]:checked');
+  if (selectedCheckboxes.length === 0) {
+    alert('삭제할 과제를 선택해주세요.');
+    return;
+  }
+  
+  if (confirm(`선택된 ${selectedCheckboxes.length}개의 과제를 삭제하시겠습니까?`)) {
+    const ids = Array.from(selectedCheckboxes).map(cb => cb.dataset.id);
+    
+    fetch('/api/assignments/delete', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify({ids: ids})
+    })
+    .then(response => response.json())
+    .then(data => {
+      if (data.success) {
+        alert('선택된 과제가 삭제되었습니다.');
+        location.reload();
+      } else {
+        alert('삭제 실패: ' + data.message);
+      }
+    });
+  }
+}
+
 /* ============================ Init ============================ */
 async function init() {
   await fetchUser();
