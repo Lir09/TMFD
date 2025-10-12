@@ -29,7 +29,6 @@ def get_db():
     dsn = os.getenv("DATABASE_URL")
     if not dsn:
         raise RuntimeError("DATABASE_URL not set")
-    # psycopg2는 postgresql:// 대신 postgres:// 를 기대할 수 있음
     if dsn.startswith("postgresql://"):
         dsn = dsn.replace("postgresql://", "postgres://", 1)
     conn = psycopg2.connect(dsn, cursor_factory=psycopg2.extras.DictCursor)
@@ -39,7 +38,7 @@ def get_db():
 def init_db():
     conn = get_db(); c = conn.cursor()
 
-    # 1. 학급 테이블 (users에서 참조하므로 제일 먼저 생성)
+    # 1. 학급 테이블
     c.execute("""
         CREATE TABLE IF NOT EXISTS classes (
             id SERIAL PRIMARY KEY,
@@ -48,7 +47,7 @@ def init_db():
         )
     """)
 
-    # 2. 사용자 테이블 (class_id → classes.id 외래키)
+    # 2. 사용자 테이블
     c.execute("""
         CREATE TABLE IF NOT EXISTS users (
             email TEXT PRIMARY KEY,
@@ -61,7 +60,7 @@ def init_db():
         )
     """)
 
-    # 3. 활동 테이블 (users.email 참조)
+    # 3. 활동 테이블
     c.execute("""
         CREATE TABLE IF NOT EXISTS activities (
             id SERIAL PRIMARY KEY,
@@ -72,7 +71,7 @@ def init_db():
         )
     """)
 
-    # 4. 일정 테이블 (users.email 참조)
+    # 4. 일정 테이블
     c.execute("""
         CREATE TABLE IF NOT EXISTS events (
             id SERIAL PRIMARY KEY,
@@ -224,11 +223,9 @@ def login():
         if not user['password_hash']:
             return render_template('login.html', error="비밀번호 데이터가 손상되었습니다. 다시 회원가입을 진행해 주세요.")
 
-        # memoryview → bytes 변환 필수
         hashed_pw = bytes(user['password_hash'])
 
         if bcrypt.checkpw(password.encode("utf-8"), hashed_pw):
-            # 로그인 성공
             session['user'] = user['name']
             session['email'] = user['email']
             if remember == "on":
@@ -402,9 +399,7 @@ def admin_assign_class(cid):
         return jsonify({"error": "존재하지 않는 학급"}), 404
 
     conn = get_db(); c = conn.cursor()
-    # 기존 leader 초기화
     c.execute("UPDATE users SET role='student' WHERE class_id=%s AND role='leader'", (cid,))
-    # 새 leader 지정
     for em in emails:
         c.execute("UPDATE users SET role='leader' WHERE email=%s AND class_id=%s", (em, cid))
     conn.commit(); conn.close()
@@ -439,6 +434,7 @@ def get_me_role_class():
     class_id = (row['class_id'] if row else None)
     return role, class_id
 
+# ---------------------- Assessments API (수정됨) ----------------------
 @app.route('/api/assessments', methods=['GET','POST'])
 @login_required
 def api_assessments():
@@ -446,6 +442,7 @@ def api_assessments():
     me = session.get('email')
 
     conn = get_db(); c = conn.cursor()
+    
     if request.method == 'GET':
         q_cid = request.args.get('class_id', type=int)
         cid = q_cid if me == "admin@admin.com" else my_cid
@@ -460,7 +457,7 @@ def api_assessments():
 
         rows = []
         for r in c.fetchall():
-            r = dict(r)  # DictRow를 일반 dict로 변환 (안전)
+            r = dict(r)
             checklist_raw = r.get("checklist")
             checklist = []
             if checklist_raw:
@@ -483,9 +480,9 @@ def api_assessments():
         conn.close()
         return jsonify(rows)
 
-    # POST
+    # POST - 새 수행평가 추가
     if not (me == "admin@admin.com" or role == "leader"):
-        conn.close(); return jsonify({"error": "leader only"}), 403
+        conn.close(); return jsonify({"error": "권한이 없습니다"}), 403
 
     data = request.get_json(force=True) or {}
     subject = (data.get("subject") or "").strip()
@@ -497,19 +494,99 @@ def api_assessments():
     checklist = data.get("checklist") or []
 
     if not subject or not title or not due_at:
-        conn.close(); return jsonify({"error": "subject, title, due_at required"}), 400
+        conn.close(); return jsonify({"error": "과목, 제목, 마감일은 필수입니다"}), 400
 
     progress = max(0, min(100, progress))
     cid = my_cid if me != "admin@admin.com" else (data.get("class_id") or my_cid)
     if cid is None:
-        conn.close(); return jsonify({"error": "class not assigned"}), 400
+        conn.close(); return jsonify({"error": "학급이 배정되지 않았습니다"}), 400
 
     c.execute("""
       INSERT INTO assessments(class_id, subject, title, type, due_at, status, progress, checklist)
       VALUES (%s,%s,%s,%s,%s,%s,%s,%s) RETURNING id
     """, (int(cid), subject, title, typ, due_at, status, progress, json.dumps(checklist)))
     new_id = c.fetchone()[0]; conn.commit(); conn.close()
-    return jsonify({"ok": True, "id": new_id}), 201
+    return jsonify({"success": True, "id": new_id}), 201
+
+
+# ---------------------- 수행평가 개별 업데이트 ----------------------
+@app.route('/api/assessments/<int:aid>', methods=['PATCH'])
+@login_required
+def update_assessment(aid):
+    data = request.get_json(force=True) or {}
+    conn = get_db(); c = conn.cursor()
+    fields, params = [], []
+    if "status" in data:
+        fields.append("status=%s"); params.append(data["status"])
+    if "progress" in data:
+        fields.append("progress=%s"); params.append(data["progress"])
+    if "checklist" in data:
+        fields.append("checklist=%s"); params.append(json.dumps(data["checklist"]))
+    if not fields:
+        return jsonify({"error":"no fields"}), 400
+    params.append(aid)
+    c.execute(f"UPDATE assessments SET {','.join(fields)} WHERE id=%s", params)
+    conn.commit(); conn.close()
+    return jsonify({"ok":True})
+
+
+# ---------------------- 수행평가 삭제 (새로 추가) ----------------------
+@app.route('/api/assessments/<int:aid>', methods=['DELETE'])
+@login_required
+def delete_assessment(aid):
+    role, my_cid = get_me_role_class()
+    me = session.get('email')
+    
+    if not (me == "admin@admin.com" or role == "leader"):
+        return jsonify({"error": "권한이 없습니다"}), 403
+    
+    conn = get_db(); c = conn.cursor()
+    
+    c.execute("SELECT class_id FROM assessments WHERE id=%s", (aid,))
+    row = c.fetchone()
+    
+    if not row:
+        conn.close()
+        return jsonify({"error": "존재하지 않는 수행평가입니다"}), 404
+    
+    if me != "admin@admin.com" and row['class_id'] != my_cid:
+        conn.close()
+        return jsonify({"error": "권한이 없습니다"}), 403
+    
+    c.execute("DELETE FROM assessments WHERE id=%s", (aid,))
+    conn.commit(); conn.close()
+    
+    return jsonify({"success": True}), 200
+
+
+# ---------------------- 수행평가 일괄 삭제 (새로 추가) ----------------------
+@app.route('/api/assessments/bulk-delete', methods=['POST'])
+@login_required
+def bulk_delete_assessments():
+    role, my_cid = get_me_role_class()
+    me = session.get('email')
+    
+    if not (me == "admin@admin.com" or role == "leader"):
+        return jsonify({"error": "권한이 없습니다"}), 403
+    
+    data = request.get_json(force=True) or {}
+    ids = data.get("ids", [])
+    
+    if not ids:
+        return jsonify({"error": "삭제할 항목이 없습니다"}), 400
+    
+    conn = get_db(); c = conn.cursor()
+    
+    if me == "admin@admin.com":
+        c.execute("DELETE FROM assessments WHERE id = ANY(%s)", (ids,))
+    else:
+        c.execute("DELETE FROM assessments WHERE id = ANY(%s) AND class_id = %s", (ids, my_cid))
+    
+    deleted = c.rowcount
+    conn.commit(); conn.close()
+    
+    return jsonify({"success": True, "deleted": deleted}), 200
+
 
 @app.route('/api/activities', methods=['POST'])
 @login_required
@@ -559,7 +636,7 @@ def signup():
         conn.commit(); conn.close()
         return redirect(url_for('login'))
     return render_template('signup.html')
-# ---------------------- /api/user ----------------------
+
 @app.route('/api/user')
 def api_user():
     if session.get('user'):
@@ -695,6 +772,7 @@ def admin_overview():
         "classes": total_classes,
         "classes_with_two_leaders": assigned_two
     })
+
 # ---------------------- 수행평가 스키마 ----------------------
 def ensure_assessment_schema():
     conn = get_db(); c = conn.cursor()
@@ -798,7 +876,6 @@ def api_notes():
         conn.close()
         return jsonify(rows)
 
-    # POST: 새 노트 생성
     data = request.get_json(force=True) or {}
     title = (data.get("title") or "").strip()
     content = (data.get("content") or "")
@@ -839,7 +916,6 @@ def api_notes_detail(nid):
         conn.commit(); conn.close()
         return "", 204
 
-    # PATCH
     data = request.get_json(force=True) or {}
     fields, params = [], []
     if "title" in data:
@@ -931,11 +1007,11 @@ def serve_upload(subpath):
         return "not found", 404
 
     return send_from_directory(directory, filename, as_attachment=False)
+
 # ====================== Kakao Talk (OpenBuilder Skill) ======================
 from datetime import datetime, timedelta
 import re
 
-# ---------- DB 스키마 ----------
 def ensure_notify_schema():
     conn = get_db(); c = conn.cursor()
     c.execute("""
@@ -968,8 +1044,6 @@ def ensure_pair_schema():
 ensure_notify_schema()
 ensure_pair_schema()
 
-
-# ---------- Kakao Skill 응답 헬퍼 ----------
 def _kakao_simple_text(text: str):
     return {
         "version": "2.0",
@@ -1021,8 +1095,6 @@ def _human_remain(due: datetime):
         return f"{h}h 남음"
     return f"{h//24}일 남음"
 
-
-# ---------- 1) TMFD → 6자리 코드 발급 ----------
 @app.route('/api/kakao/pair/start', methods=['POST'])
 @login_required
 def pair_start():
@@ -1046,8 +1118,6 @@ def pair_start():
 
     return jsonify({"code": code, "expires_in": 600})
 
-
-# ---------- 2) 카톡 → "/등록 123456" ----------
 @app.route("/kakao/skill/register", methods=["POST"])
 def kakao_skill_register():
     payload = request.get_json(force=True, silent=True) or {}
@@ -1086,8 +1156,6 @@ def kakao_skill_register():
 
     return jsonify(_kakao_simple_text("연결 완료! 이제 '/수행평가'라고 보내면 목록을 보여줄게요."))
 
-
-# ---------- 3) 카톡 → "/수행평가" ----------
 @app.route("/kakao/skill/assessments", methods=["POST"])
 def kakao_skill_assessments():
     payload = request.get_json(force=True, silent=True) or {}
@@ -1142,40 +1210,7 @@ def handle_error(e):
         }
     }, 200
 
-@app.route('/api/assessments/<int:aid>', methods=['PATCH'])
-@login_required
-def update_assessment(aid):
-    data = request.get_json(force=True) or {}
-    conn = get_db(); c = conn.cursor()
-    fields, params = [], []
-    if "status" in data:
-        fields.append("status=%s"); params.append(data["status"])
-    if "progress" in data:
-        fields.append("progress=%s"); params.append(data["progress"])
-    if "checklist" in data:
-        fields.append("checklist=%s"); params.append(json.dumps(data["checklist"]))
-    if not fields:
-        return jsonify({"error":"no fields"}), 400
-    params.append(aid)
-    c.execute(f"UPDATE assessments SET {','.join(fields)} WHERE id=%s", params)
-    conn.commit(); conn.close()
-    return jsonify({"ok":True})
-
-
-# ---------------------- 엔트리 포인트 ----------------------
-if __name__ == '__main__':
-    init_db()
-    ensure_admin_schema()
-    ensure_assessment_schema()
-    ensure_notes_schema()
-    ensure_files_schema()
-    ensure_notify_schema()
-    ensure_pair_schema()
-
-    app.run(host="0.0.0.0", port=5000, debug=True)
-
 def is_admin(email):
-    """관리자 권한 확인 함수"""
     try:
         conn = get_db()
         c = conn.cursor()
@@ -1184,7 +1219,6 @@ def is_admin(email):
         conn.close()
         return result and result['role'] == 'admin'
     except:
-        # 데이터베이스 오류 시 이메일로 확인 (임시)
         return email == 'otaejin79@gmail.com'
 
 @app.route('/api/user-info')
@@ -1198,15 +1232,13 @@ def get_user_info():
         })
     return jsonify({'error': 'Not logged in'}), 401
 
-@app.route('/api/assignments', methods=['POST'])
-def add_assignment():
-    if not is_admin(session.get('email')):
-        return jsonify({'success': False, 'message': '관리자 권한이 필요합니다'}), 403
-    # ... 나머지 코드
+if __name__ == '__main__':
+    init_db()
+    ensure_admin_schema()
+    ensure_assessment_schema()
+    ensure_notes_schema()
+    ensure_files_schema()
+    ensure_notify_schema()
+    ensure_pair_schema()
 
-@app.route('/api/assignments/delete', methods=['POST'])
-def delete_assignments():
-    if not is_admin(session.get('email')):
-        return jsonify({'success': False, 'message': '관리자 권한이 필요합니다'}), 403
-    # ... 나머지 코드
-
+    app.run(host="0.0.0.0", port=5000, debug=True)

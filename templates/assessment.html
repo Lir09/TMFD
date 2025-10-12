@@ -17,14 +17,14 @@
         <a href="/" style="text-decoration:none;color:inherit;cursor:pointer;">
           <div class="page-title">수행평가 관리 <span id="roleBadge" class="role-badge hidden"></span></div>
         </a>
-        <div class="page-sub">상단 과목 탭 선택 → 아래에서 과제 현황 관리</div>
+        <div class="page-sub">상단 과목 탭 선택 → 아래서 과제 현황 관리</div>
       </div>
       <div id="today"></div>
     </div>
 
-    <!-- 관리자 전용 컨트롤 (하나만 남김) -->
+    <!-- 관리자 전용 컨트롤 -->
     <div id="adminControls" class="admin-controls">
-      <button class="btn-admin" onclick="showAddAssignmentModal()">
+      <button class="btn-admin" id="addBtn">
         📝 새 과제 추가
       </button>
       <button class="btn-admin btn-danger" onclick="deleteSelectedAssignments()">
@@ -37,11 +37,11 @@
 
     <!-- Tabs -->
     <nav class="tabs" id="tabs" aria-label="과목 선택">
-      <button class="tab is-active" data-emoji="📚" data-subj="ALL" aria-label="모든과목">모든과목</button>
+      <button class="tab is-active" data-emoji="📚" data-subj="ALL" aria-label="모든 과목">모든 과목</button>
       <button class="tab" data-emoji="🅰️" data-subj="국어" aria-label="국어">국어</button>
       <button class="tab" data-emoji="➗" data-subj="수학" aria-label="수학">수학</button>
       <button class="tab" data-emoji="✏️" data-subj="영어" aria-label="영어">영어</button>
-      <button class="tab" data-emoji="🌍" data-subj="사회" aria-label="사회">사회</button>
+      <button class="tab" data-emoji="🌏" data-subj="사회" aria-label="사회">사회</button>
       <button class="tab" data-emoji="🧪" data-subj="과학" aria-label="과학">과학</button>
       <button class="tab" data-emoji="🏛️" data-subj="한국사" aria-label="한국사">한국사</button>
       <button class="tab" data-emoji="💻" data-subj="정보" aria-label="정보">정보</button>
@@ -71,7 +71,7 @@
       <section class="card" aria-label="과제 현황">
         <div class="card-hd">과제 현황</div>
         <div class="card-bd">
-          <div class="hint">체크 → 일괄 작업(추가 예정). 행 클릭 → 상세 보기. '모든과목' 탭에서 통합 검색/정렬 가능.</div>
+          <div class="hint">체크 → 일괄 작업(추가 예정). 행 클릭 → 상세 보기. '모든 과목' 탭에서 통합 검색/정렬 가능.</div>
           <div class="list">
             <div class="row head" aria-hidden="true">
               <div>선택</div><div>과목</div><div>과제명</div><div>유형</div><div>마감</div><div>남은시간</div>
@@ -129,17 +129,17 @@
     </div>
   </div>
 
-  <!-- 과제 추가 모달 -->
-  <div id="addAssignmentModal" class="modal" style="display: none;">
-    <div class="modal-content">
-      <div class="modal-header">
-        <h3>새 과제 추가</h3>
-        <button onclick="closeAddAssignmentModal()">&times;</button>
-      </div>
-      <form id="addAssignmentForm">
+  <!-- 과제 추가 Drawer -->
+  <div class="drawer" id="addDrawer" role="dialog" aria-modal="true">
+    <div class="pane">
+      <header>
+        <div class="title">새 과제 추가</div>
+        <button id="addClose" class="btn" style="padding:6px 10px">✕</button>
+      </header>
+      <div class="body">
         <div class="form-group">
-          <label>과목</label>
-          <select name="subject" required>
+          <label class="muted">과목</label>
+          <select id="adSubject" class="input">
             <option value="">선택하세요</option>
             <option value="국어">국어</option>
             <option value="수학">수학</option>
@@ -148,125 +148,73 @@
             <option value="과학">과학</option>
             <option value="한국사">한국사</option>
             <option value="정보">정보</option>
+            <option value="과탐실">과탐실</option>
           </select>
         </div>
-        <div class="form-group">
-          <label>과제명</label>
-          <input type="text" name="title" required>
+        
+        <div class="form-group" style="margin-top:12px">
+          <label class="muted">과제명</label>
+          <input id="adTitle" class="input" type="text" placeholder="과제 제목" />
         </div>
-        <div class="form-group">
-          <label>유형</label>
-          <select name="type" required>
+        
+        <div class="form-group" style="margin-top:12px">
+          <label class="muted">유형</label>
+          <select id="adType" class="input">
             <option value="발표">발표</option>
             <option value="보고서">보고서</option>
             <option value="실험">실험</option>
             <option value="코딩">코딩</option>
+            <option value="기타">기타</option>
           </select>
         </div>
-        <div class="form-group">
-          <label>마감일</label>
-          <input type="datetime-local" name="due_date" required>
+        
+        <div class="form-group" style="margin-top:12px">
+          <label class="muted">마감일시</label>
+          <input id="adDue" class="input" type="datetime-local" />
         </div>
-        <div class="form-group">
-          <label>설명 (선택)</label>
-          <textarea name="description" rows="3"></textarea>
+        
+        <div class="form-group" style="margin-top:12px">
+          <label class="muted">상태</label>
+          <select id="adStatus" class="input">
+            <option value="미제출">미제출</option>
+            <option value="진행중">진행중</option>
+            <option value="제출">제출</option>
+            <option value="채점중">채점중</option>
+            <option value="완료">완료</option>
+          </select>
         </div>
-        <div class="modal-footer">
-          <button type="button" onclick="closeAddAssignmentModal()">취소</button>
-          <button type="submit" class="btn-admin">추가하기</button>
+        
+        <div class="form-group" style="margin-top:12px">
+          <label class="muted">진행률 (%)</label>
+          <input id="adProg" class="input" type="number" min="0" max="100" value="0" />
         </div>
-      </form>
+        
+        <div class="form-group" style="margin-top:12px">
+          <label class="muted">체크리스트 (줄바꿈으로 구분)</label>
+          <textarea id="adList" class="input" rows="4" placeholder="항목1&#10;항목2&#10;항목3"></textarea>
+        </div>
+        
+        <div style="display:flex;gap:8px;justify-content:flex-end;margin-top:16px">
+          <button class="btn" id="addCancel">취소</button>
+          <button class="btn primary" id="addCreate">추가하기</button>
+        </div>
+      </div>
     </div>
   </div>
 
+  <style>
+    .form-group { margin-bottom: 12px; }
+    .form-group label { display: block; margin-bottom: 6px; font-size: 13px; }
+    .form-group .input, .form-group select, .form-group textarea {
+      width: 100%;
+      padding: 8px 10px;
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      font: inherit;
+    }
+  </style>
+
   <div class="toast" id="toast"></div>
   <script src="/static/js/assessment.js"></script>
-  <script>
-    // 사용자 역할 확인 및 관리자 UI 표시
-    function checkUserRole() {
-      fetch('/api/user-info')
-        .then(response => response.json())
-        .then(data => {
-          if (data.email === 'otaejin79@gmail.com') {
-            document.getElementById('adminControls').classList.add('show');
-            document.getElementById('roleBadge').textContent = '관리자';
-            document.getElementById('roleBadge').classList.remove('hidden');
-          }
-        })
-        .catch(error => {
-          console.log('사용자 정보 확인 실패:', error);
-        });
-    }
-
-    // 과제 추가 모달 표시
-    function showAddAssignmentModal() {
-      document.getElementById('addAssignmentModal').style.display = 'block';
-    }
-
-    // 과제 추가 모달 닫기
-    function closeAddAssignmentModal() {
-      document.getElementById('addAssignmentModal').style.display = 'none';
-      document.getElementById('addAssignmentForm').reset();
-    }
-
-    // 과제 추가 폼 제출
-    document.getElementById('addAssignmentForm').addEventListener('submit', function(e) {
-      e.preventDefault();
-      const formData = new FormData(this);
-      
-      fetch('/api/assignments', {
-        method: 'POST',
-        body: formData
-      })
-      .then(response => response.json())
-      .then(data => {
-        if (data.success) {
-          alert('과제가 성공적으로 추가되었습니다.');
-          closeAddAssignmentModal();
-          location.reload();
-        } else {
-          alert('과제 추가 실패: ' + data.message);
-        }
-      })
-      .catch(error => {
-        alert('오류가 발생했습니다: ' + error.message);
-      });
-    });
-
-    // 선택된 과제들 삭제
-    function deleteSelectedAssignments() {
-      const selectedCheckboxes = document.querySelectorAll('input[type="checkbox"]:checked');
-      if (selectedCheckboxes.length === 0) {
-        alert('삭제할 과제를 선택해주세요.');
-        return;
-      }
-      
-      if (confirm(`선택된 ${selectedCheckboxes.length}개의 과제를 삭제하시겠습니까?`)) {
-        const ids = Array.from(selectedCheckboxes).map(cb => cb.dataset.id);
-        
-        fetch('/api/assignments/delete', {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json'
-          },
-          body: JSON.stringify({ids: ids})
-        })
-        .then(response => response.json())
-        .then(data => {
-          if (data.success) {
-            alert('선택된 과제가 삭제되었습니다.');
-            location.reload();
-          } else {
-            alert('삭제 실패: ' + data.message);
-          }
-        });
-      }
-    }
-
-    // 페이지 로드 시 사용자 역할 확인
-    document.addEventListener('DOMContentLoaded', function() {
-      checkUserRole();
-    });
-  </script>
 </body>
 </html>

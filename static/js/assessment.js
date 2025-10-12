@@ -65,10 +65,10 @@ async function fetchAssessments() {
 }
 
 async function updateStatus(id, newStatus) {
-  await fetch(`/api/assessments`, {
-    method: "POST", // 서버에서 PATCH 구현 시 PATCH로 바꾸기
+  await fetch(`/api/assessments/${id}`, {
+    method: "PATCH",
     headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ id, status: newStatus }),
+    body: JSON.stringify({ status: newStatus }),
   });
 }
 
@@ -119,6 +119,7 @@ function renderRows() {
   items.forEach((it) => {
     const div = document.createElement("div");
     div.className = "row";
+    div.dataset.id = it.id;
     div.innerHTML = `
       <div><input type="checkbox"></div>
       <div>${it.subj}</div>
@@ -181,10 +182,10 @@ function openDetail(id) {
       renderRows();
       renderBuckets();
 
-      await fetch(`/api/assessments`, {
-        method: "POST",
+      await fetch(`/api/assessments/${id}`, {
+        method: "PATCH",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ id: it.id, progress: it.progress }),
+        body: JSON.stringify({ progress: it.progress }),
       });
     });
     ul.appendChild(li);
@@ -218,10 +219,7 @@ async function createFromAdd() {
   const type = $("#adType").value.trim();
   const due = $("#adDue").value;
   const status = $("#adStatus").value.trim();
-  const prog = Math.max(
-    0,
-    Math.min(100, parseInt($("#adProg").value || "0", 10))
-  );
+  const prog = Math.max(0, Math.min(100, parseInt($("#adProg").value || "0", 10)));
   const list = $("#adList")
     .value.split("\n")
     .map((s) => s.trim())
@@ -232,27 +230,34 @@ async function createFromAdd() {
     return;
   }
 
-  const res = await fetch("/api/assessments", {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({
-      subject: subj,
-      title,
-      type,
-      due_at: due,
-      status,
-      progress: prog,
-      checklist: list,
-    }),
-  });
-  if (res.ok) {
-    await fetchAssessments();
-    closeAdd();
-    renderRows();
-    renderBuckets();
-    toast("새 과제가 등록되었습니다");
-  } else {
-    toast("등록 실패");
+  try {
+    const res = await fetch("/api/assessments", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        subject: subj,
+        title,
+        type,
+        due_at: due,
+        status,
+        progress: prog,
+        checklist: list,
+      }),
+    });
+
+    const data = await res.json();
+    
+    if (res.ok) {
+      await fetchAssessments();
+      closeAdd();
+      renderRows();
+      renderBuckets();
+      toast("새 과제가 등록되었습니다");
+    } else {
+      toast(data.error || "등록 실패");
+    }
+  } catch (err) {
+    toast("서버 오류: " + err.message);
   }
 }
 
@@ -262,6 +267,51 @@ function closeAdd() {
   $("#adDue").value = "";
   $("#adList").value = "";
   $("#adProg").value = "0";
+}
+
+/* ============================ 삭제 기능 ============================ */
+async function deleteSelectedAssignments() {
+  const selectedCheckboxes = document.querySelectorAll('.row input[type="checkbox"]:checked');
+  
+  if (selectedCheckboxes.length === 0) {
+    toast('삭제할 과제를 선택해주세요.');
+    return;
+  }
+  
+  if (!confirm(`선택된 ${selectedCheckboxes.length}개의 과제를 삭제하시겠습니까?`)) {
+    return;
+  }
+  
+  const ids = Array.from(selectedCheckboxes).map(cb => {
+    const row = cb.closest('.row');
+    return parseInt(row.dataset.id);
+  }).filter(id => !isNaN(id));
+  
+  if (ids.length === 0) {
+    toast('유효한 ID를 찾을 수 없습니다.');
+    return;
+  }
+
+  try {
+    const res = await fetch('/api/assessments/bulk-delete', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ ids: ids })
+    });
+
+    const data = await res.json();
+    
+    if (res.ok) {
+      toast(`${data.deleted}개의 과제가 삭제되었습니다.`);
+      await fetchAssessments();
+      renderRows();
+      renderBuckets();
+    } else {
+      toast(data.error || '삭제 실패');
+    }
+  } catch (err) {
+    toast('서버 오류: ' + err.message);
+  }
 }
 
 /* ============================ Events ============================ */
@@ -341,80 +391,6 @@ function checkUserRole() {
     });
 }
 
-// 과제 추가 모달 표시
-function showAddAssignmentModal() {
-  document.getElementById('addAssignmentModal').style.display = 'block';
-}
-
-// 과제 추가 모달 닫기
-function closeAddAssignmentModal() {
-  document.getElementById('addAssignmentModal').style.display = 'none';
-  document.getElementById('addAssignmentForm').reset();
-}
-
-// 과제 추가 폼 제출
-document.addEventListener('DOMContentLoaded', function() {
-  // 기존 DOMContentLoaded 이벤트에 추가
-  checkUserRole();
-  
-  // 과제 추가 폼 이벤트 리스너
-  const addForm = document.getElementById('addAssignmentForm');
-  if (addForm) {
-    addForm.addEventListener('submit', function(e) {
-      e.preventDefault();
-      const formData = new FormData(this);
-      
-      fetch('/api/assignments', {
-        method: 'POST',
-        body: formData
-      })
-      .then(response => response.json())
-      .then(data => {
-        if (data.success) {
-          alert('과제가 성공적으로 추가되었습니다.');
-          closeAddAssignmentModal();
-          location.reload();
-        } else {
-          alert('과제 추가 실패: ' + data.message);
-        }
-      })
-      .catch(error => {
-        alert('오류가 발생했습니다: ' + error.message);
-      });
-    });
-  }
-});
-
-// 선택된 과제들 삭제
-function deleteSelectedAssignments() {
-  const selectedCheckboxes = document.querySelectorAll('input[type="checkbox"]:checked');
-  if (selectedCheckboxes.length === 0) {
-    alert('삭제할 과제를 선택해주세요.');
-    return;
-  }
-  
-  if (confirm(`선택된 ${selectedCheckboxes.length}개의 과제를 삭제하시겠습니까?`)) {
-    const ids = Array.from(selectedCheckboxes).map(cb => cb.dataset.id);
-    
-    fetch('/api/assignments/delete', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json'
-      },
-      body: JSON.stringify({ids: ids})
-    })
-    .then(response => response.json())
-    .then(data => {
-      if (data.success) {
-        alert('선택된 과제가 삭제되었습니다.');
-        location.reload();
-      } else {
-        alert('삭제 실패: ' + data.message);
-      }
-    });
-  }
-}
-
 /* ============================ Init ============================ */
 async function init() {
   await fetchUser();
@@ -423,5 +399,6 @@ async function init() {
   renderRows();
   renderBuckets();
   setupEvents();
+  checkUserRole();
 }
 document.addEventListener("DOMContentLoaded", init);
