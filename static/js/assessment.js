@@ -6,6 +6,7 @@ const state = {
   status: "",
   sort: "due",
   items: [],
+  uploadedImageUrl: ""
 };
 
 /* ============================ Helpers ============================ */
@@ -61,6 +62,9 @@ async function fetchAssessments() {
     progress: it.progress,
     checklist: it.checklist || [],
     checks: (it.checklist || []).map(() => 0),
+    description: it.description || "",
+    rubricImage: it.rubric_image || "",
+    files: it.files || []
   }));
 }
 
@@ -147,6 +151,8 @@ function renderBuckets() {
     const ms = msRemaining(it.due);
     const el = document.createElement("div");
     el.textContent = `${it.subj} - ${it.title} (${fmtRemain(it.due)})`;
+    el.style.cursor = "pointer";
+    el.addEventListener("click", () => openDetail(it.id));
 
     if (ms < 0) lateList.appendChild(el);
     else if (ms < 1000 * 60 * 60 * 48) soonList.appendChild(el);
@@ -158,6 +164,7 @@ function renderBuckets() {
 function openDetail(id) {
   const it = state.items.find((x) => x.id === id);
   if (!it) return;
+  
   $("#dwTitle").textContent = it.title;
   $("#dwSubj").textContent = it.subj;
   $("#dwType").textContent = it.type;
@@ -165,6 +172,25 @@ function openDetail(id) {
   $("#dwStatus").textContent = it.status;
   $("#dwProg").style.width = `${it.progress}%`;
 
+  // 설명 표시
+  const descEl = $("#dwDescription");
+  if (it.description) {
+    descEl.textContent = it.description;
+    descEl.style.display = "block";
+  } else {
+    descEl.style.display = "none";
+  }
+
+  // 평가기준표 이미지 표시
+  const rubricEl = $("#dwRubricImage");
+  if (it.rubricImage) {
+    rubricEl.src = it.rubricImage;
+    rubricEl.parentElement.style.display = "block";
+  } else {
+    rubricEl.parentElement.style.display = "none";
+  }
+
+  // 체크리스트
   const ul = $("#dwList");
   ul.innerHTML = "";
   it.checklist.forEach((txt, idx) => {
@@ -213,6 +239,42 @@ function openDetail(id) {
 }
 
 /* ============================ Add Drawer ============================ */
+async function uploadRubricImage() {
+  const fileInput = $("#adRubricImage");
+  const file = fileInput.files[0];
+  
+  if (!file) {
+    toast("이미지를 선택해주세요");
+    return;
+  }
+
+  const formData = new FormData();
+  formData.append("image", file);
+
+  try {
+    $("#uploadProgress").style.display = "block";
+    const res = await fetch("/api/assessments/upload-image", {
+      method: "POST",
+      body: formData
+    });
+
+    const data = await res.json();
+    
+    if (res.ok) {
+      state.uploadedImageUrl = data.url;
+      $("#uploadedImagePreview").src = data.url;
+      $("#imagePreviewContainer").style.display = "block";
+      toast("이미지 업로드 완료!");
+    } else {
+      toast(data.error || "업로드 실패");
+    }
+  } catch (err) {
+    toast("서버 오류: " + err.message);
+  } finally {
+    $("#uploadProgress").style.display = "none";
+  }
+}
+
 async function createFromAdd() {
   const subj = $("#adSubject").value.trim();
   const title = $("#adTitle").value.trim();
@@ -220,6 +282,7 @@ async function createFromAdd() {
   const due = $("#adDue").value;
   const status = $("#adStatus").value.trim();
   const prog = Math.max(0, Math.min(100, parseInt($("#adProg").value || "0", 10)));
+  const description = $("#adDescription").value.trim();
   const list = $("#adList")
     .value.split("\n")
     .map((s) => s.trim())
@@ -242,6 +305,8 @@ async function createFromAdd() {
         status,
         progress: prog,
         checklist: list,
+        description: description,
+        rubric_image: state.uploadedImageUrl
       }),
     });
 
@@ -267,6 +332,10 @@ function closeAdd() {
   $("#adDue").value = "";
   $("#adList").value = "";
   $("#adProg").value = "0";
+  $("#adDescription").value = "";
+  $("#adRubricImage").value = "";
+  $("#imagePreviewContainer").style.display = "none";
+  state.uploadedImageUrl = "";
 }
 
 /* ============================ 삭제 기능 ============================ */
@@ -357,6 +426,7 @@ function setupEvents() {
   const addDrawer = $("#addDrawer");
   const addCancel = $("#addCancel");
   const addCreate = $("#addCreate");
+  const uploadBtn = $("#uploadRubricBtn");
 
   if (state.role === "admin" || state.role === "leader") {
     addBtn.classList.remove("hidden");
@@ -373,6 +443,12 @@ function setupEvents() {
   addCreate.addEventListener("click", () => {
     createFromAdd();
   });
+
+  if (uploadBtn) {
+    uploadBtn.addEventListener("click", () => {
+      uploadRubricImage();
+    });
+  }
 }
 
 // 사용자 역할 확인 및 관리자 UI 표시

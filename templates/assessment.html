@@ -17,7 +17,7 @@
         <a href="/" style="text-decoration:none;color:inherit;cursor:pointer;">
           <div class="page-title">수행평가 관리 <span id="roleBadge" class="role-badge hidden"></span></div>
         </a>
-        <div class="page-sub">상단 과목 탭 선택 → 아래서 과제 현황 관리</div>
+        <div class="page-sub">📸 평가기준표 이미지 첨부 가능 · 상세 설명 작성</div>
       </div>
       <div id="today"></div>
     </div>
@@ -31,27 +31,27 @@
         🗑️ 선택 항목 삭제
       </button>
       <span style="color: #666; font-size: 14px;">
-        관리자 전용 기능
+        관리자/반장 전용 기능
       </span>
     </div>
 
     <!-- Tabs -->
     <nav class="tabs" id="tabs" aria-label="과목 선택">
-      <button class="tab is-active" data-emoji="📚" data-subj="ALL" aria-label="모든 과목">모든 과목</button>
-      <button class="tab" data-emoji="🅰️" data-subj="국어" aria-label="국어">국어</button>
-      <button class="tab" data-emoji="➗" data-subj="수학" aria-label="수학">수학</button>
-      <button class="tab" data-emoji="✏️" data-subj="영어" aria-label="영어">영어</button>
-      <button class="tab" data-emoji="🌏" data-subj="사회" aria-label="사회">사회</button>
-      <button class="tab" data-emoji="🧪" data-subj="과학" aria-label="과학">과학</button>
-      <button class="tab" data-emoji="🏛️" data-subj="한국사" aria-label="한국사">한국사</button>
-      <button class="tab" data-emoji="💻" data-subj="정보" aria-label="정보">정보</button>
-      <button class="tab" data-emoji="🔬" data-subj="과탐실" aria-label="과탐실">과탐실</button>
+      <button class="tab is-active" data-emoji="📚" data-subj="ALL">모든 과목</button>
+      <button class="tab" data-emoji="🅰️" data-subj="국어">국어</button>
+      <button class="tab" data-emoji="➗" data-subj="수학">수학</button>
+      <button class="tab" data-emoji="✏️" data-subj="영어">영어</button>
+      <button class="tab" data-emoji="🌏" data-subj="사회">사회</button>
+      <button class="tab" data-emoji="🧪" data-subj="과학">과학</button>
+      <button class="tab" data-emoji="🏛️" data-subj="한국사">한국사</button>
+      <button class="tab" data-emoji="💻" data-subj="정보">정보</button>
+      <button class="tab" data-emoji="🔬" data-subj="과탐실">과탐실</button>
       <span class="spacer"></span>
     </nav>
 
-    <!-- Filter bar / Toolbar -->
+    <!-- Filter bar -->
     <section class="filterbar" role="region" aria-label="필터">
-      <input id="q" class="input" type="search" placeholder="과제명/키워드 검색 (전과목 가능)" aria-label="과제명/키워드 검색">
+      <input id="q" class="input" type="search" placeholder="과제명/키워드 검색" aria-label="검색">
       <select id="status" class="select" aria-label="상태">
         <option value="">상태 전체</option>
         <option>미제출</option><option>진행중</option><option>제출</option><option>채점중</option><option>완료</option>
@@ -71,13 +71,17 @@
       <section class="card" aria-label="과제 현황">
         <div class="card-hd">과제 현황</div>
         <div class="card-bd">
-          <div class="hint">체크 → 일괄 작업(추가 예정). 행 클릭 → 상세 보기. '모든 과목' 탭에서 통합 검색/정렬 가능.</div>
+          <div class="hint">✨ 과제 클릭 → 평가기준표 사진, 상세 설명, 체크리스트 확인</div>
           <div class="list">
             <div class="row head" aria-hidden="true">
               <div>선택</div><div>과목</div><div>과제명</div><div>유형</div><div>마감</div><div>남은시간</div>
             </div>
             <div id="rows"></div>
-            <div id="empty" class="empty hidden">데이터가 없습니다.</div>
+            <div id="empty" class="empty hidden">
+              <div style="font-size:48px">📋</div>
+              <h3>등록된 수행평가가 없습니다</h3>
+              <p>관리자/반장이 과제를 추가하면 여기에 표시됩니다</p>
+            </div>
             <div id="needClass" class="empty hidden">학급에 배정되지 않았습니다. 관리자에게 문의하세요.</div>
           </div>
         </div>
@@ -87,15 +91,21 @@
       <aside class="side" aria-label="사이드바">
         <div class="card">
           <div class="card-hd">오늘 할 일</div>
-          <div class="card-bd" id="todayList"></div>
+          <div class="card-bd" id="todayList">
+            <div class="hint">오늘 마감인 과제가 표시됩니다</div>
+          </div>
         </div>
         <div class="card">
           <div class="card-hd">임박(48h)</div>
-          <div class="card-bd" id="soonList"></div>
+          <div class="card-bd" id="soonList">
+            <div class="hint">48시간 이내 마감 과제</div>
+          </div>
         </div>
         <div class="card">
-          <div class="card-hd">지각</div>
-          <div class="card-bd" id="lateList"></div>
+          <div class="card-hd">⚠️ 지각</div>
+          <div class="card-bd" id="lateList">
+            <div class="hint">마감 기한이 지난 과제</div>
+          </div>
         </div>
       </aside>
     </div>
@@ -117,12 +127,26 @@
           <div class="muted">진행률</div>
           <div><div class="progress"><i id="dwProg" style="width:0%"></i></div></div>
         </div>
-        <div>
-          <div class="muted" style="margin-bottom:6px">체크리스트</div>
+        
+        <!-- 상세 설명 -->
+        <div style="margin-top:16px">
+          <div class="muted" style="margin-bottom:8px; font-weight:600">📝 상세 설명</div>
+          <div id="dwDescription" style="white-space:pre-wrap; line-height:1.6; padding:12px; background:#f9fafb; border-radius:8px; border:1px solid var(--line)"></div>
+        </div>
+
+        <!-- 평가기준표 이미지 -->
+        <div style="margin-top:16px; display:none">
+          <div class="muted" style="margin-bottom:8px; font-weight:600">📸 평가기준표</div>
+          <img id="dwRubricImage" style="width:100%; border-radius:8px; border:1px solid var(--line)" />
+        </div>
+
+        <!-- 체크리스트 -->
+        <div style="margin-top:16px">
+          <div class="muted" style="margin-bottom:6px; font-weight:600">✅ 체크리스트</div>
           <ul class="checklist" id="dwList"></ul>
         </div>
-        <div class="muted" style="margin-top:6px">제출/재제출, 루브릭, 코멘트 기능은 백엔드 연동 시 활성화 예정.</div>
-        <div style="display:flex;gap:8px;justify-content:flex-end;margin-top:12px">
+        
+        <div style="display:flex;gap:8px;justify-content:flex-end;margin-top:16px">
           <button class="btn" id="dwClose">닫기</button>
         </div>
       </div>
@@ -131,15 +155,16 @@
 
   <!-- 과제 추가 Drawer -->
   <div class="drawer" id="addDrawer" role="dialog" aria-modal="true">
-    <div class="pane">
+    <div class="pane" style="width:500px">
       <header>
         <div class="title">새 과제 추가</div>
-        <button id="addClose" class="btn" style="padding:6px 10px">✕</button>
+        <button id="addClose" class="btn" style="padding:6px 10px" onclick="document.getElementById('addDrawer').classList.remove('show')">✕</button>
       </header>
-      <div class="body">
+      <div class="body" style="max-height:calc(100vh - 80px); overflow-y:auto">
+        
         <div class="form-group">
-          <label class="muted">과목</label>
-          <select id="adSubject" class="input">
+          <label class="muted">과목 *</label>
+          <select id="adSubject" class="input" required>
             <option value="">선택하세요</option>
             <option value="국어">국어</option>
             <option value="수학">수학</option>
@@ -152,28 +177,45 @@
           </select>
         </div>
         
-        <div class="form-group" style="margin-top:12px">
-          <label class="muted">과제명</label>
-          <input id="adTitle" class="input" type="text" placeholder="과제 제목" />
+        <div class="form-group">
+          <label class="muted">과제명 *</label>
+          <input id="adTitle" class="input" type="text" placeholder="예: 독서 감상문 작성" required />
         </div>
         
-        <div class="form-group" style="margin-top:12px">
+        <div class="form-group">
           <label class="muted">유형</label>
           <select id="adType" class="input">
             <option value="발표">발표</option>
             <option value="보고서">보고서</option>
             <option value="실험">실험</option>
             <option value="코딩">코딩</option>
+            <option value="포트폴리오">포트폴리오</option>
+            <option value="조별활동">조별활동</option>
             <option value="기타">기타</option>
           </select>
         </div>
         
-        <div class="form-group" style="margin-top:12px">
-          <label class="muted">마감일시</label>
-          <input id="adDue" class="input" type="datetime-local" />
+        <div class="form-group">
+          <label class="muted">마감일시 *</label>
+          <input id="adDue" class="input" type="datetime-local" required />
+        </div>
+
+        <div class="form-group">
+          <label class="muted">상세 설명</label>
+          <textarea id="adDescription" class="input" rows="5" placeholder="과제에 대한 상세 설명을 입력하세요.&#10;&#10;예시:&#10;- 제출 형식: A4 3장 이내&#10;- 참고자료: 교과서 2단원&#10;- 평가 기준: 창의성 30%, 완성도 40%, 발표력 30%"></textarea>
+        </div>
+
+        <div class="form-group">
+          <label class="muted">📸 평가기준표 이미지 (선택)</label>
+          <input id="adRubricImage" type="file" accept="image/*" class="input" style="padding:8px" />
+          <button id="uploadRubricBtn" class="btn" style="margin-top:8px; width:100%">이미지 업로드</button>
+          <div id="uploadProgress" style="display:none; margin-top:8px; color:#2563eb">업로드 중...</div>
+          <div id="imagePreviewContainer" style="display:none; margin-top:12px">
+            <img id="uploadedImagePreview" style="max-width:100%; border-radius:8px; border:1px solid var(--line)" />
+          </div>
         </div>
         
-        <div class="form-group" style="margin-top:12px">
+        <div class="form-group">
           <label class="muted">상태</label>
           <select id="adStatus" class="input">
             <option value="미제출">미제출</option>
@@ -184,17 +226,17 @@
           </select>
         </div>
         
-        <div class="form-group" style="margin-top:12px">
+        <div class="form-group">
           <label class="muted">진행률 (%)</label>
           <input id="adProg" class="input" type="number" min="0" max="100" value="0" />
         </div>
         
-        <div class="form-group" style="margin-top:12px">
+        <div class="form-group">
           <label class="muted">체크리스트 (줄바꿈으로 구분)</label>
-          <textarea id="adList" class="input" rows="4" placeholder="항목1&#10;항목2&#10;항목3"></textarea>
+          <textarea id="adList" class="input" rows="6" placeholder="자료 조사하기&#10;초안 작성하기&#10;검토 및 수정&#10;최종 제출"></textarea>
         </div>
         
-        <div style="display:flex;gap:8px;justify-content:flex-end;margin-top:16px">
+        <div style="display:flex;gap:8px;justify-content:flex-end;margin-top:20px">
           <button class="btn" id="addCancel">취소</button>
           <button class="btn primary" id="addCreate">추가하기</button>
         </div>
@@ -203,14 +245,33 @@
   </div>
 
   <style>
-    .form-group { margin-bottom: 12px; }
-    .form-group label { display: block; margin-bottom: 6px; font-size: 13px; }
-    .form-group .input, .form-group select, .form-group textarea {
+    .form-group { 
+      margin-bottom: 16px; 
+    }
+    .form-group label { 
+      display: block; 
+      margin-bottom: 6px; 
+      font-size: 13px; 
+      font-weight: 600;
+    }
+    .form-group .input, 
+    .form-group select, 
+    .form-group textarea {
       width: 100%;
-      padding: 8px 10px;
+      padding: 10px 12px;
       border: 1px solid var(--line);
       border-radius: 8px;
       font: inherit;
+      transition: border-color 0.2s;
+    }
+    .form-group .input:focus,
+    .form-group select:focus,
+    .form-group textarea:focus {
+      border-color: var(--accent);
+      outline: none;
+    }
+    .drawer .pane {
+      max-width: 500px;
     }
   </style>
 
